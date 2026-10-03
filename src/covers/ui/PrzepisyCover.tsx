@@ -124,21 +124,21 @@ export default function PrzepisyCover({ check }: CoverProps) {
           </View>
         }
       >
-      <View style={st.searchRow}>
-        <Icon name="search" size={20} color={K.muted} />
-        <TextInput
-          {...secretSafeInput}
-          value={query}
-          onChangeText={setQuery}
-          placeholder="Przepis lub składnik"
-          placeholderTextColor={K.muted}
-          returnKeyType="search"
-          onSubmitEditing={async () => {
-            if (query.trim() && (await check('search', query))) setQuery('');
-          }}
-          style={st.search}
-        />
-      </View>
+        <View style={st.searchRow}>
+          <Icon name="search" size={20} color={K.muted} />
+          <TextInput
+            {...secretSafeInput}
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Przepis lub składnik"
+            placeholderTextColor={K.muted}
+            returnKeyType="search"
+            onSubmitEditing={async () => {
+              if (query.trim() && (await check('search', query))) setQuery('');
+            }}
+            style={st.search}
+          />
+        </View>
       </Hero>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 }}>
         {[null, 'Ciasta', 'Obiady', 'Zupy', 'Śniadania'].map((c) => (
