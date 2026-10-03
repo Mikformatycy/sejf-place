@@ -13,6 +13,7 @@ import { FORMS, formLabel } from '@/content/formy';
 import type { Assessment } from '@/legal/assessment';
 import { moneyAmounts, tagText } from '@/content/pieniadze';
 import { fileExt, formatBytes, formatInstant, formatOccurred, formatSeconds, shortHash } from '@/ui/format';
+import { formColor } from '@/ui/formColors';
 import { SeverityCard } from '@/ui/SeverityCard';
 import { C, Icon, Notice, P, VaultScreen, type HeaderAction, type IconName } from '@/ui/kit';
 import { themed } from '@/ui/theme';
@@ -170,7 +171,7 @@ export default function EntryDetail() {
             return (
               <View key={f} style={{ marginBottom: 6 }}>
                 <View style={st.formRow}>
-                  <Icon name={form?.icon ?? 'pricetag-outline'} size={20} color={C.primary} />
+                  <Icon name={form?.icon ?? 'pricetag-outline'} size={20} color={formColor(f).fg} />
                   <Text style={st.formLabel}>{formLabel(f)}</Text>
                 </View>
                 {ticked.map((tag) => (

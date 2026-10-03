@@ -22,6 +22,11 @@ const LIGHT = {
   aiSoft: '#EEE8F7',
   /** The "new entry" button. */
   add: '#2B7A73',
+  /** Entry list tiles: the description (grey) and the amount (muted green). */
+  txt: '#6E747C',
+  txtBg: '#EDEEF0',
+  cash: '#5F7F4E',
+  cashBg: '#E7EDE1',
 };
 
 const DARK: typeof LIGHT = {
@@ -42,6 +47,10 @@ const DARK: typeof LIGHT = {
   ai: '#A88BDB',
   aiSoft: '#2D2540',
   add: '#3E9E95',
+  txt: '#A3A9B1',
+  txtBg: '#272A2F',
+  cash: '#93AE80',
+  cashBg: '#232B20',
 };
 
 export const C = { ...LIGHT };

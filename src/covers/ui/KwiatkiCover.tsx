@@ -4,7 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { daysUntilWatering, localDayKey } from '@/covers/calendar';
 import { joinSequence, SEQUENCE_STEPS } from '@/covers/sequence';
+import { Icon, Info } from '@/ui/kit';
 
+import { Backdrop, Hero, HeroBtn, tint } from './decor';
 import { newId, secretSafeInput, usePersisted, useStepRecorder, type CoverProps } from './shared';
 
 interface Plant {
@@ -34,6 +36,10 @@ const SAMPLE: Plant[] = [
 
 const K = { bg: '#F2F7EF', card: '#FFFFFF', text: '#22351F', muted: '#6E806A', accent: '#3E8E41', soft: '#E0EEDC', border: '#D7E5D2', late: '#C0582B' };
 
+// Every plant gets its own little icon and colour: leaves, flowers, roses.
+const PLANT_ICONS = ['leaf', 'flower', 'rose', 'leaf-outline', 'flower-outline'] as const;
+const PLANT_COLORS = ['#3E8E41', '#E57399', '#8E6CC8', '#2E9E8F', '#D9822B'];
+
 function status(days: number): { text: string; color: string } {
   if (days < 0) return { text: `po terminie ${-days} ${-days === 1 ? 'dzień' : 'dni'}`, color: K.late };
   if (days === 0) return { text: 'podlać dziś', color: K.accent };
@@ -48,6 +54,7 @@ type Screen = { name: 'list' } | { name: 'plant'; id: string } | { name: 'add' }
 export default function KwiatkiCover({ check }: CoverProps) {
   const [plants, setPlants, loaded] = usePersisted<Plant[]>('kwiatki.plants', SAMPLE);
   const [screen, setScreen] = useState<Screen>({ name: 'list' });
+  const [byName, setByName] = usePersisted<boolean>('kwiatki.byName', false);
   const today = new Date();
 
   // Watering taps form a sequence key; if it unlocks, undo the taps.
@@ -103,35 +110,71 @@ export default function KwiatkiCover({ check }: CoverProps) {
 
   const sorted = plants
     .map((p) => ({ p, days: daysUntilWatering(p.lastWatered, p.everyDays, today) }))
-    .sort((a, b) => a.days - b.days || a.p.name.localeCompare(b.p.name));
-  const due = sorted.filter((x) => x.days <= 0).length;
+    .sort((a, b) => (byName ? a.p.name.localeCompare(b.p.name) : a.days - b.days || a.p.name.localeCompare(b.p.name)));
+  const thirsty = sorted.filter((x) => x.days <= 0);
 
   return (
-    <SafeAreaView style={st.screen} edges={['top']}>
-      <Text style={st.h1}>Moje kwiatki</Text>
-      <Text style={[st.muted, { paddingHorizontal: 16 }]}>{due === 0 ? 'Wszystkie podlane.' : `Do podlania dziś: ${due}`}</Text>
+    <SafeAreaView style={st.screen} edges={[]}>
+      <Backdrop icons={['leaf-outline', 'flower-outline', 'rose-outline', 'sunny-outline']} colors={PLANT_COLORS} />
+      <Hero
+        color={K.accent}
+        title="Moje kwiatki"
+        icons={['leaf-outline', 'flower-outline', 'rose-outline', 'sunny-outline']}
+        right={
+          <>
+            <Info text="Stuknij kroplę, gdy podlejesz roślinę." color="#fff" />
+            <HeroBtn icon={byName ? 'text-outline' : 'time-outline'} label={byName ? 'Sortuj według podlewania' : 'Sortuj alfabetycznie'} onPress={() => setByName(!byName)} />
+          </>
+        }
+      >
+        {/* Who is thirsty today; a sun when everyone has had water. */}
+        <View style={st.thirsty}>
+          {thirsty.length === 0 ? (
+            <View style={st.thirstyItem}>
+              <Icon name="sunny" size={22} color="#FFE082" />
+              <Icon name="checkmark-done" size={20} color="#fff" />
+            </View>
+          ) : (
+            thirsty.map(({ p }) => (
+              <Pressable key={p.id} onPress={() => setScreen({ name: 'plant', id: p.id })} style={st.thirstyItem}>
+                <Icon name={tint(p.name, PLANT_ICONS)} size={18} color="#fff" />
+                <Text style={st.thirstyText}>{p.name}</Text>
+                <Icon name="water" size={14} color="#B3E5FC" />
+              </Pressable>
+            ))
+          )}
+        </View>
+      </Hero>
       <FlatList
         data={sorted}
         keyExtractor={(x) => x.p.id}
         contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
-        ListEmptyComponent={<Text style={st.empty}>Dodaj pierwszą roślinę.</Text>}
+        ListEmptyComponent={
+          <View style={{ alignItems: 'center', marginTop: 50, gap: 8 }}>
+            <Icon name="leaf-outline" size={44} color={K.border} />
+            <Text style={st.empty}>Brak roślin</Text>
+          </View>
+        }
         renderItem={({ item: { p, days } }) => {
           const s = status(days);
           return (
             <Pressable onPress={() => setScreen({ name: 'plant', id: p.id })} style={st.card}>
+              <View style={[st.plantIcon, { backgroundColor: tint(p.name, PLANT_COLORS) + '22' }]}>
+                <Icon name={tint(p.name, PLANT_ICONS)} size={20} color={tint(p.name, PLANT_COLORS)} />
+              </View>
               <View style={{ flex: 1 }}>
                 <Text style={st.name}>{p.name}</Text>
                 <Text style={[st.status, { color: s.color }]}>{s.text}</Text>
               </View>
-              <Pressable onPress={() => water(p)} hitSlop={6} style={[st.waterBtn, days > 0 && st.waterBtnIdle]}>
-                <Text style={[st.waterText, days > 0 && { color: K.accent }]}>Podlane</Text>
+              <Pressable accessibilityRole="button" accessibilityLabel={`Podlane: ${p.name}`} onPress={() => water(p)} hitSlop={6} style={[st.waterBtn, days > 0 && st.waterBtnIdle]}>
+                <Icon name="water" size={20} color={days > 0 ? K.accent : '#fff'} />
               </Pressable>
             </Pressable>
           );
         }}
       />
-      <Pressable style={st.fab} onPress={() => setScreen({ name: 'add' })}>
-        <Text style={st.fabText}>+ Dodaj roślinę</Text>
+      <Pressable accessibilityRole="button" accessibilityLabel="Dodaj roślinę" style={st.fab} onPress={() => setScreen({ name: 'add' })}>
+        <Icon name="add" size={28} color="#fff" />
       </Pressable>
     </SafeAreaView>
   );
@@ -152,31 +195,57 @@ function PlantView(props: {
 
   return (
     <SafeAreaView style={st.screen} edges={['top']}>
-      <Pressable onPress={props.onBack} hitSlop={10} style={st.topBar}>
-        <Text style={st.link}>‹ Kwiatki</Text>
-      </Pressable>
+      <View style={[st.topBar, st.bar]}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Wróć" onPress={props.onBack} hitSlop={10}>
+          <Icon name="chevron-back" size={26} color={K.accent} />
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Usuń roślinę"
+          hitSlop={10}
+          onPress={() =>
+            Alert.alert(`Usunąć: ${plant.name}?`, undefined, [
+              { text: 'Anuluj', style: 'cancel' },
+              { text: 'Usuń', style: 'destructive', onPress: props.onDelete },
+            ])
+          }
+        >
+          <Icon name="trash-outline" size={22} color={K.muted} />
+        </Pressable>
+      </View>
       <ScrollView contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
         <Text style={st.h1Detail}>{plant.name}</Text>
-        <Text style={st.muted}>
-          Ostatnio podlana: {Number(d)}.{m}.{y}
-        </Text>
+        <View style={st.labelRow}>
+          <Icon name="water-outline" size={16} color={K.muted} />
+          <Text style={st.muted}>
+            {Number(d)}.{m}.{y}
+          </Text>
+        </View>
 
-        <Text style={st.label}>Podlewaj co (dni)</Text>
-        <View style={{ flexDirection: 'row' }}>
+        <View style={st.labelRow}>
+          <Icon name="repeat" size={18} color={K.text} />
+          <Text style={[st.label, st.labelInline]}>Co ile dni</Text>
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <TextInput keyboardType="number-pad" value={every} onChangeText={(v) => setEvery(digits(v))} style={[st.input, { flex: 1 }]} />
           <Pressable
-            style={[st.btn, st.btnInline]}
+            accessibilityRole="button"
+            accessibilityLabel="Zapisz"
+            style={[st.btn, st.round]}
             onPress={() => {
               const n = Math.min(60, Math.max(1, Number(every) || plant.everyDays));
               setEvery(String(n));
               props.onUpdate({ everyDays: n });
             }}
           >
-            <Text style={st.btnText}>Zapisz</Text>
+            <Icon name="checkmark" size={22} color="#fff" />
           </Pressable>
         </View>
 
-        <Text style={st.label}>Notatka</Text>
+        <View style={st.labelRow}>
+          <Icon name="create-outline" size={18} color={K.text} />
+          <Text style={[st.label, st.labelInline]}>Notatka</Text>
+        </View>
         <TextInput
           {...secretSafeInput}
           multiline
@@ -185,7 +254,7 @@ function PlantView(props: {
             setNote(t);
             setNoteSaved(false);
           }}
-          placeholder="np. lubi półcień, nawozić od maja"
+          placeholder="lubi półcień, nawozić od maja"
           placeholderTextColor={K.muted}
           style={[st.input, { minHeight: 80, textAlignVertical: 'top' }]}
         />
@@ -200,18 +269,7 @@ function PlantView(props: {
             setNoteSaved(true);
           }}
         >
-          <Text style={st.btnText}>{noteSaved ? 'Zapisano ✓' : 'Zapisz notatkę'}</Text>
-        </Pressable>
-        <Pressable
-          style={[st.btn, { backgroundColor: 'transparent' }]}
-          onPress={() =>
-            Alert.alert(`Usunąć: ${plant.name}?`, undefined, [
-              { text: 'Anuluj', style: 'cancel' },
-              { text: 'Usuń', style: 'destructive', onPress: props.onDelete },
-            ])
-          }
-        >
-          <Text style={[st.btnText, { color: K.muted }]}>Usuń roślinę</Text>
+          {noteSaved ? <Icon name="checkmark" size={22} color="#fff" /> : <Text style={st.btnText}>Zapisz</Text>}
         </Pressable>
       </ScrollView>
     </SafeAreaView>
@@ -235,18 +293,20 @@ function AddPlant({ check, onCancel, onSave }: { check: CoverProps['check']; onC
   return (
     <SafeAreaView style={st.screen} edges={['top']}>
       <View style={[st.topBar, { flexDirection: 'row', justifyContent: 'space-between' }]}>
-        <Pressable onPress={onCancel} hitSlop={10}>
-          <Text style={st.link}>‹ Anuluj</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel="Anuluj" onPress={onCancel} hitSlop={10}>
+          <Icon name="close" size={26} color={K.accent} />
         </Pressable>
-        <Pressable onPress={save} hitSlop={10}>
-          <Text style={[st.link, { fontWeight: '700' }]}>Zapisz</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel="Zapisz" onPress={save} hitSlop={10}>
+          <Icon name="checkmark" size={26} color={K.accent} />
         </Pressable>
       </View>
       <ScrollView contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
         <Text style={st.h1Detail}>Nowa roślina</Text>
-        <Text style={st.label}>Nazwa</Text>
-        <TextInput {...secretSafeInput} value={name} onChangeText={setName} placeholder="np. Zamiokulkas" placeholderTextColor={K.muted} style={st.input} />
-        <Text style={st.label}>Podlewaj co (dni)</Text>
+        <TextInput {...secretSafeInput} value={name} onChangeText={setName} placeholder="Nazwa" placeholderTextColor={K.muted} style={[st.input, { marginTop: 14 }]} />
+        <View style={st.labelRow}>
+          <Icon name="repeat" size={18} color={K.text} />
+          <Text style={[st.label, st.labelInline]}>Co ile dni</Text>
+        </View>
         <TextInput keyboardType="number-pad" value={every} onChangeText={(v) => setEvery(digits(v))} style={st.input} />
       </ScrollView>
     </SafeAreaView>
@@ -258,20 +318,29 @@ const st = StyleSheet.create({
   h1: { fontSize: 28, fontWeight: '800', color: K.text, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 2 },
   h1Detail: { fontSize: 26, fontWeight: '800', color: K.text, marginBottom: 2 },
   topBar: { paddingHorizontal: 16, paddingVertical: 10 },
+  bar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  titleRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 2 },
+  thirsty: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 14 },
+  thirstyItem: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 16, paddingHorizontal: 10, paddingVertical: 6 },
+  thirstyText: { color: '#fff', fontWeight: '700' },
+  sortBtn: { flexDirection: 'row', alignItems: 'center', gap: 2, backgroundColor: K.card, borderRadius: 16, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: K.border, marginRight: 8 },
+  badge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: K.soft, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 5 },
+  badgeText: { fontSize: 14, fontWeight: '700', color: K.accent },
+  plantIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: K.soft, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  labelRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 16, marginBottom: 6 },
+  labelInline: { marginTop: 0, marginBottom: 0 },
+  round: { width: 46, height: 46, borderRadius: 23, marginTop: 0, marginLeft: 8, paddingVertical: 0, justifyContent: 'center' },
   link: { color: K.accent, fontSize: 17 },
   card: { flexDirection: 'row', alignItems: 'center', backgroundColor: K.card, borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: K.border },
   name: { fontSize: 17, fontWeight: '700', color: K.text, marginBottom: 2 },
   status: { fontSize: 14 },
   muted: { color: K.muted, fontSize: 14 },
   empty: { textAlign: 'center', color: K.muted, marginTop: 40 },
-  waterBtn: { backgroundColor: K.accent, borderRadius: 18, paddingHorizontal: 14, paddingVertical: 8, marginLeft: 8 },
+  waterBtn: { backgroundColor: K.accent, width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
   waterBtnIdle: { backgroundColor: K.soft },
-  waterText: { color: '#fff', fontWeight: '700' },
-  fab: { position: 'absolute', right: 16, bottom: 28, backgroundColor: K.accent, borderRadius: 26, paddingHorizontal: 20, paddingVertical: 14, elevation: 4 },
-  fabText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  fab: { position: 'absolute', right: 16, bottom: 28, backgroundColor: K.accent, width: 58, height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center', elevation: 4 },
   label: { fontSize: 14, fontWeight: '600', color: K.text, marginTop: 16, marginBottom: 6 },
   input: { backgroundColor: K.card, borderRadius: 12, borderWidth: 1, borderColor: K.border, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16, color: K.text },
   btn: { backgroundColor: K.accent, borderRadius: 12, paddingVertical: 13, alignItems: 'center', marginTop: 10 },
-  btnInline: { marginTop: 0, marginLeft: 8, paddingHorizontal: 18 },
   btnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
 });

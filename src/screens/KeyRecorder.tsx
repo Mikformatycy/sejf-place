@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { canonicalize, checkStrength, type CoverId } from '@/covers/canonical';
 import { coverAction } from '@/covers/catalog';
 import { COVER_COMPONENTS, type CheckFn } from '@/covers/ui';
+import { CoverEmbedded } from '@/covers/ui/decor';
 import { useLatest } from '@/covers/ui/shared';
 import { C } from '@/ui/kit';
 import { themed } from '@/ui/theme';
@@ -89,7 +90,9 @@ export function KeyRecorder({
         ) : null}
       </SafeAreaView>
       <View style={{ flex: 1 }}>
-        <Cover check={check} />
+        <CoverEmbedded.Provider value>
+          <Cover check={check} />
+        </CoverEmbedded.Provider>
         {saving ? (
           <View style={st.overlay} pointerEvents="auto">
             <ActivityIndicator size="large" color={C.primary} />

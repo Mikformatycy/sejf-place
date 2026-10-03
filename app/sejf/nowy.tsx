@@ -7,6 +7,7 @@ import { FORMS } from '@/content/formy';
 import { amountField, moneyAmounts, parseAmount, takesAmount } from '@/content/pieniadze';
 import { formatBytes, nowLocal } from '@/ui/format';
 import { Btn, C, CheckRow, Chip, Field, H2, Icon, IconBtn, List, Notice, VaultScreen, s, type IconName } from '@/ui/kit';
+import { formColor } from '@/ui/formColors';
 import { themed } from '@/ui/theme';
 import { saveEntry } from '@/vault/actions';
 import { pickDocument, pickFromGallery, useDraft, type DraftFields } from '@/vault/evidence';
@@ -68,7 +69,11 @@ export default function NewEntry() {
   const { correctionOf } = useLocalSearchParams<{ correctionOf?: string }>();
   const draftKey = correctionOf ?? 'new';
   const original = useSession((st) => (correctionOf ? st.index?.entries.find((e) => e.id === correctionOf) : undefined));
-  const attachments = useDraft((d) => d.attachments);
+  const added = useDraft((d) => d.attachments);
+  // Editing: the original's files carry over to the new version. They are listed apart from the
+  // draft's own files, so removing one here only leaves it out; the file itself is never deleted.
+  const [kept, setKept] = useState<Attachment[]>(() => original?.content?.attachments ?? []);
+  const attachments = [...kept, ...added.filter((a) => !kept.some((k) => k.id === a.id))];
 
   // Reopening the form brings back the unsaved draft (text and attachments).
   const [f, setF] = useState<DraftFields>(() => {
@@ -220,7 +225,13 @@ export default function NewEntry() {
               <Text style={{ flex: 1, color: C.text }} numberOfLines={1}>
                 {KIND_LABEL[a.kind]} · {formatBytes(a.size)}
               </Text>
-              <IconBtn icon="close-circle" label="Usuń załącznik" size={32} color={C.muted} onPress={() => useDraft.getState().remove(a.id)} />
+              <IconBtn
+                icon="close-circle"
+                label="Usuń załącznik"
+                size={32}
+                color={C.muted}
+                onPress={() => (kept.some((k) => k.id === a.id) ? setKept(kept.filter((k) => k.id !== a.id)) : useDraft.getState().remove(a.id))}
+              />
             </View>
           ))}
         </List>
@@ -238,6 +249,7 @@ export default function NewEntry() {
               <CheckRow
                 label={form.label}
                 icon={form.icon}
+                iconColor={formColor(form.id).fg}
                 checked={on}
                 right={on && picked ? String(picked) : undefined}
                 onPress={() => set('forms', toggle(f.forms, form.id))}
@@ -253,13 +265,13 @@ export default function NewEntry() {
                       {ticked && takesAmount(ex) ? (
                         <View style={[st.nestedField, !lastRow && st.divider]}>
                           <TextInput
-                            style={s.input}
+                            style={[s.input, st.amountInput]}
                             value={f.amounts?.[ex] ?? ''}
                             onChangeText={(v) => {
                               markActivity();
                               set('amounts', { ...f.amounts, [ex]: v });
                             }}
-                            placeholder="Kwota, zł (jeśli znasz)"
+                            placeholder="Kwota (zł, opcjonalnie)"
                             placeholderTextColor="#9AA0A6"
                             keyboardType="decimal-pad"
                           />
@@ -309,5 +321,6 @@ const st = themed(() => StyleSheet.create({
   attachment: { flexDirection: 'row', alignItems: 'center', paddingLeft: 14, paddingRight: 6, paddingVertical: 6 },
   divider: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.border },
   nestedHead: { backgroundColor: C.bg, paddingLeft: 46, paddingTop: 12, paddingBottom: 4, fontSize: 12, fontWeight: '700', color: C.muted, textTransform: 'uppercase' },
+  amountInput: { fontSize: 14, paddingVertical: 7 },
   nestedField: { backgroundColor: C.bg, paddingLeft: 46, paddingRight: 14, paddingBottom: 10 },
 }));

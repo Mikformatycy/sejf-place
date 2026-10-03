@@ -3,9 +3,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { FORMS, formLabel } from '@/content/formy';
-import { moneyAmounts } from '@/content/pieniadze';
+import { amountTotal, formatAmount, moneyAmounts } from '@/content/pieniadze';
 import { fileExt, formatOccurred, formatSeconds } from '@/ui/format';
-import { C, H2, Icon, IconBtn, List, P, VaultScreen } from '@/ui/kit';
+import { C, H2, Icon, IconBtn, P, VaultScreen } from '@/ui/kit';
+import { formColor } from '@/ui/formColors';
 import { themed } from '@/ui/theme';
 import { stampNow } from '@/vault/actions';
 import { recordingDurationMs, thumbnailUri, useDraft } from '@/vault/evidence';
@@ -119,11 +120,11 @@ export default function Timeline() {
           <Text style={st.emptyText}>Brak wpisów</Text>
         </View>
       ) : (
-        <List>
-          {sorted.map((e, i) => (
-            <EntryRow key={e.id} e={e} last={i === sorted.length - 1} />
+        <View>
+          {sorted.map((e) => (
+            <EntryRow key={e.id} e={e} />
           ))}
-        </List>
+        </View>
       )}
     </VaultScreen>
   );
@@ -132,7 +133,7 @@ export default function Timeline() {
 const formIcon = (id: string) => FORMS.find((f) => f.id === id)?.icon ?? 'pricetag-outline';
 
 /** One line per entry: the date and icons only, so nothing readable shows over a shoulder. */
-function EntryRow({ e, last }: { e: Entry; last: boolean }) {
+function EntryRow({ e }: { e: Entry }) {
   // Only entries with content are listed (deleted ones stay in the chain and the report).
   const c = e.content!;
   const open = () => router.push({ pathname: '/sejf/wpis/[id]', params: { id: e.id } });
@@ -146,33 +147,39 @@ function EntryRow({ e, last }: { e: Entry; last: boolean }) {
       onPress={open}
       accessibilityRole="button"
       accessibilityLabel={label}
-      style={({ pressed }) => [st.entry, !last && st.divider, pressed && { backgroundColor: C.bg }]}
+      style={({ pressed }) => [st.entry, pressed && { backgroundColor: C.bg }]}
     >
       <View style={st.head}>
         <Text style={st.date}>{formatOccurred(c.occurredAt, c.occurredApprox)}</Text>
-        {c.forms.map((f) => (
-          <View key={f} style={st.metaIcon}>
-            <Icon name={formIcon(f)} size={18} color={C.primary} />
-          </View>
-        ))}
-        {money ? (
-          <View style={st.metaIcon}>
-            <Icon name="cash-outline" size={18} color={C.primary} />
-          </View>
-        ) : null}
-        {c.description ? (
-          <View style={st.metaIcon}>
-            <Icon name="document-text-outline" size={18} color={C.muted} />
-          </View>
-        ) : null}
         <Icon name={e.tsa ? 'shield-checkmark' : 'hourglass-outline'} size={18} color={e.tsa ? C.ok : C.warn} />
       </View>
-      {c.attachments.length > 0 ? (
-        <View style={st.thumbs}>
-          {c.attachments.slice(0, MAX_THUMBS).map((a) => (
-            <Thumb key={a.id} a={a} />
-          ))}
-          {c.attachments.length > MAX_THUMBS ? <Text style={st.more}>+{c.attachments.length - MAX_THUMBS}</Text> : null}
+      {/* Bottom line: what the entry holds (description, amount, files) on the left, kinds of violence on the right. */}
+      {c.description || money || c.attachments.length > 0 || c.forms.length > 0 ? (
+        <View style={st.bottom}>
+          <View style={st.thumbs}>
+            {c.description ? (
+              <View style={[st.thumb, st.thumbIcon, { backgroundColor: C.txtBg }]}>
+                <Icon name="document-text-outline" size={20} color={C.txt} />
+              </View>
+            ) : null}
+            {money ? (
+              <View style={[st.thumb, st.thumbIcon, st.amountTile, { backgroundColor: C.cashBg }]}>
+                <Icon name="cash-outline" size={18} color={C.cash} />
+                <Text style={[st.thumbTime, { color: C.cash }]} numberOfLines={1}>
+                  {formatAmount(amountTotal(moneyAmounts(c)))}
+                </Text>
+              </View>
+            ) : null}
+            {c.attachments.slice(0, MAX_THUMBS).map((a) => (
+              <Thumb key={a.id} a={a} />
+            ))}
+            {c.attachments.length > MAX_THUMBS ? <Text style={st.more}>+{c.attachments.length - MAX_THUMBS}</Text> : null}
+          </View>
+          <View style={st.forms}>
+            {c.forms.map((f) => (
+              <Icon key={f} name={formIcon(f)} size={20} color={formColor(f).fg} />
+            ))}
+          </View>
         </View>
       ) : null}
     </Pressable>
@@ -207,7 +214,7 @@ function Thumb({ a }: { a: Attachment }) {
   if (!isImage) {
     return (
       <View style={[st.thumb, st.thumbIcon]}>
-        <Icon name={a.kind === 'audio' ? 'mic' : 'document-outline'} size={22} color={C.primary} />
+        <Icon name={a.kind === 'audio' ? 'mic' : 'document-outline'} size={18} color={C.primary} />
         {a.kind === 'audio' && ms ? <Text style={st.thumbTime}>{formatSeconds(Math.round(ms / 1000))}</Text> : null}
         {a.kind === 'document' && fileExt(a.name, a.mime) ? <Text style={st.thumbTime}>{fileExt(a.name, a.mime)}</Text> : null}
       </View>
@@ -234,17 +241,19 @@ const st = themed(() => StyleSheet.create({
   },
   empty: { alignItems: 'center', paddingVertical: 40, gap: 8 },
   emptyText: { color: C.muted, fontSize: 15 },
-  metaIcon: { flexDirection: 'row', alignItems: 'center', marginRight: 8 },
   pendingText: { flex: 1, color: C.warn, fontSize: 14, marginLeft: 8 },
   fabs: { position: 'absolute', right: 16, bottom: 20, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  entry: { paddingHorizontal: 14, paddingVertical: 14 },
-  divider: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.border },
+  // Each entry is its own card, with some air between them.
+  entry: { backgroundColor: C.surface, borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: C.border, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 12 },
   head: { flexDirection: 'row', alignItems: 'center' },
-  date: { flex: 1, fontSize: 15, fontWeight: '700', color: C.text },
-  thumbs: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 },
-  thumb: { width: 56, height: 56, borderRadius: 6, overflow: 'hidden', backgroundColor: C.border },
-  thumbImg: { width: 56, height: 56 },
+  date: { fontSize: 14, fontWeight: '700', color: C.text, marginRight: 6 },
+  bottom: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 8 },
+  thumbs: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  forms: { flexDirection: 'row', gap: 10, marginLeft: 'auto', paddingLeft: 8, paddingBottom: 4 },
+  thumb: { width: 46, height: 46, borderRadius: 6, overflow: 'hidden', backgroundColor: C.border },
+  thumbImg: { width: 46, height: 46 },
   thumbIcon: { alignItems: 'center', justifyContent: 'center', backgroundColor: C.primarySoft },
+  amountTile: { width: undefined, minWidth: 46, paddingHorizontal: 6 },
   thumbTime: { fontSize: 11, fontWeight: '600', color: C.primary, marginTop: 2 },
   more: { fontSize: 13, color: C.muted, marginLeft: 4 },
 }));

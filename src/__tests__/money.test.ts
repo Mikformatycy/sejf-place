@@ -49,7 +49,7 @@ describe('amounts', () => {
 
   it('formats and round-trips', () => {
     expect(formatAmount(125050)).toBe('1 250,50 zł');
-    expect(formatAmount(80000)).toBe('800,00 zł');
+    expect(formatAmount(80000)).toBe('800 zł');
     expect(parseAmount(amountField(125050))).toBe(125050);
     expect(amountField(80000)).toBe('800');
   });
@@ -79,8 +79,8 @@ describe('money in the chain and report', () => {
 
     const html = renderReportHtml(model, 'R-1');
     expect(html).toContain('Suma kwot wpisanych przez autorkę');
-    expect(html).toContain('1 400,00 zł');
-    expect(html).toContain('niełożenie na utrzymanie: 800,00 zł');
+    expect(html).toContain('1 400 zł');
+    expect(html).toContain('niełożenie na utrzymanie: 800 zł');
   });
 
   it('a package with money entries still verifies', async () => {

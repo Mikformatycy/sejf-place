@@ -367,6 +367,7 @@ export function CheckRow({
   checked,
   onPress,
   icon,
+  iconColor,
   right,
   radio,
   nested,
@@ -376,6 +377,8 @@ export function CheckRow({
   checked: boolean;
   onPress: () => void;
   icon?: IconName;
+  /** Colour of the icon (e.g. the kind of violence); otherwise blue when ticked. */
+  iconColor?: string;
   right?: string;
   radio?: boolean;
   nested?: boolean;
@@ -389,7 +392,7 @@ export function CheckRow({
       onPress={onPress}
       style={({ pressed }) => [s.listRow, nested && s.nestedRow, !last && s.listDivider, pressed && { backgroundColor: C.border }]}
     >
-      {icon ? <Ionicons name={icon} size={20} color={checked ? C.primary : C.muted} style={{ marginRight: 12 }} /> : null}
+      {icon ? <Ionicons name={icon} size={20} color={iconColor ?? (checked ? C.primary : C.muted)} style={{ marginRight: 12 }} /> : null}
       <Text style={[s.rowTitle, { flex: 1 }, nested && { fontSize: 15 }, checked && !nested && { fontWeight: '600' }]}>{label}</Text>
       {right ? <Text style={s.rowRight}>{right}</Text> : null}
       <Ionicons name={mark} size={22} color={checked ? C.primary : C.muted} style={{ marginLeft: 10 }} />

@@ -4,7 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { RECIPES, formatAmount, type Recipe } from '@/content/przepisy';
 import { joinSequence, SEQUENCE_STEPS } from '@/covers/sequence';
+import { Icon, Info, type IconName } from '@/ui/kit';
 
+import { Backdrop, Hero } from './decor';
 import { newId, secretSafeInput, usePersisted, useStepRecorder, type CoverProps } from './shared';
 
 const K = {
@@ -16,6 +18,15 @@ const K = {
   soft: '#F3E3D3',
   border: '#EADBCB',
 };
+
+// Each category has its own colour and icon, like the tabs of a cookbook.
+const CATEGORY: Record<string, { color: string; icon: IconName }> = {
+  Ciasta: { color: '#D81B60', icon: 'ice-cream-outline' },
+  Obiady: { color: '#E65100', icon: 'restaurant-outline' },
+  Zupy: { color: '#F9A825', icon: 'flame-outline' },
+  Śniadania: { color: '#43A047', icon: 'sunny-outline' },
+};
+const cat = (c: string | null) => (c && CATEGORY[c]) || { color: '#C0582B', icon: 'book-outline' as IconName };
 
 type Overrides = Record<string, Record<number, number>>;
 type Screen = { name: 'list' } | { name: 'recipe'; id: string } | { name: 'add' };
@@ -100,14 +111,26 @@ export default function PrzepisyCover({ check }: CoverProps) {
   );
 
   return (
-    <SafeAreaView style={st.screen} edges={['top']}>
-      <Text style={st.h1}>Moje przepisy</Text>
+    <SafeAreaView style={st.screen} edges={[]}>
+      <Backdrop icons={['restaurant-outline', 'pizza-outline', 'ice-cream-outline', 'cafe-outline', 'nutrition-outline']} colors={['#D81B60', '#E65100', '#F9A825', '#43A047']} opacity={0.07} />
+      <Hero
+        color={K.accent}
+        title="Moje przepisy"
+        icons={['restaurant-outline', 'pizza-outline', 'ice-cream-outline', 'cafe-outline']}
+        right={
+          <View style={st.favs}>
+            <Icon name="heart" size={16} color="#fff" />
+            <Text style={st.favsText}>{favorites.length}</Text>
+          </View>
+        }
+      >
       <View style={st.searchRow}>
+        <Icon name="search" size={20} color={K.muted} />
         <TextInput
           {...secretSafeInput}
           value={query}
           onChangeText={setQuery}
-          placeholder="Szukaj przepisu lub składnika"
+          placeholder="Przepis lub składnik"
           placeholderTextColor={K.muted}
           returnKeyType="search"
           onSubmitEditing={async () => {
@@ -116,9 +139,11 @@ export default function PrzepisyCover({ check }: CoverProps) {
           style={st.search}
         />
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 8 }}>
+      </Hero>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 }}>
         {[null, 'Ciasta', 'Obiady', 'Zupy', 'Śniadania'].map((c) => (
-          <Pressable key={c ?? 'all'} onPress={() => setCategory(c)} style={[st.chip, category === c && st.chipOn]}>
+          <Pressable key={c ?? 'all'} onPress={() => setCategory(c)} style={[st.chip, category === c && { backgroundColor: cat(c).color }]}>
+            {c ? <Icon name={cat(c).icon} size={15} color={category === c ? '#fff' : cat(c).color} /> : null}
             <Text style={[st.chipText, category === c && { color: '#fff' }]}>{c ?? 'Wszystkie'}</Text>
           </Pressable>
         ))}
@@ -127,25 +152,49 @@ export default function PrzepisyCover({ check }: CoverProps) {
         data={shown}
         keyExtractor={(r) => r.id}
         contentContainerStyle={{ padding: 16, paddingTop: 4, paddingBottom: 100 }}
-        ListEmptyComponent={<Text style={[st.muted, { textAlign: 'center', marginTop: 40 }]}>Nic nie znaleziono.</Text>}
+        ListEmptyComponent={
+          <View style={{ alignItems: 'center', marginTop: 50, gap: 8 }}>
+            <Icon name="restaurant-outline" size={44} color={K.border} />
+            <Text style={st.muted}>Brak wyników</Text>
+          </View>
+        }
         renderItem={({ item }) => (
           <Pressable onPress={() => openRecipe(item.id)} style={st.card}>
+            <View style={[st.catIcon, { backgroundColor: cat(item.category).color + '1F' }]}>
+              <Icon name={cat(item.category).icon} size={22} color={cat(item.category).color} />
+            </View>
             <View style={{ flex: 1 }}>
               <Text style={st.cardTitle}>{item.name}</Text>
-              <Text style={st.muted}>
-                {item.category} · {item.minutes} min · {item.servings} porcji
-              </Text>
+              <Meta minutes={item.minutes} servings={item.servings} />
             </View>
             <Pressable hitSlop={12} onPress={() => toggleFavorite(item.id)} accessibilityLabel="Ulubione">
-              <Text style={[st.heart, favorites.includes(item.id) && { color: K.accent }]}>{favorites.includes(item.id) ? '♥' : '♡'}</Text>
+              <Icon name={favorites.includes(item.id) ? 'heart' : 'heart-outline'} size={26} color={favorites.includes(item.id) ? K.accent : K.muted} />
             </Pressable>
           </Pressable>
         )}
       />
-      <Pressable style={st.fab} onPress={() => setView({ name: 'add' })}>
-        <Text style={st.fabText}>+ Dodaj przepis</Text>
+      <Pressable accessibilityRole="button" accessibilityLabel="Dodaj przepis" style={st.fab} onPress={() => setView({ name: 'add' })}>
+        <Icon name="add" size={28} color="#fff" />
       </Pressable>
     </SafeAreaView>
+  );
+}
+
+/** Time and servings as two small icons with numbers. */
+function Meta({ minutes, servings }: { minutes: number; servings?: number }) {
+  return (
+    <View style={st.meta}>
+      <Icon name="time-outline" size={14} color={K.muted} />
+      <Text style={st.muted}>{minutes} min</Text>
+      {servings ? (
+        <>
+          <View style={{ marginLeft: 10 }}>
+            <Icon name="people-outline" size={14} color={K.muted} />
+          </View>
+          <Text style={st.muted}>{servings}</Text>
+        </>
+      ) : null}
+    </View>
   );
 }
 
@@ -188,28 +237,41 @@ function RecipeView(props: {
   return (
     <SafeAreaView style={st.screen} edges={['top']}>
       <View style={st.topBar}>
-        <Pressable onPress={props.onBack} hitSlop={10}>
-          <Text style={st.back}>‹ Przepisy</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel="Przepisy" onPress={props.onBack} hitSlop={10}>
+          <Icon name="chevron-back" size={26} color={K.accent} />
         </Pressable>
-        <Pressable onPress={props.onFavorite} hitSlop={10}>
-          <Text style={[st.heart, props.favorite && { color: K.accent }]}>{props.favorite ? '♥' : '♡'}</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel="Ulubione" onPress={props.onFavorite} hitSlop={10}>
+          <Icon name={props.favorite ? 'heart' : 'heart-outline'} size={26} color={props.favorite ? K.accent : K.muted} />
         </Pressable>
       </View>
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 60 }} keyboardShouldPersistTaps="handled">
         <Text style={st.h1Recipe}>{recipe.name}</Text>
-        <Text style={st.muted}>
-          {recipe.category} · {recipe.minutes} min
-        </Text>
+        <Meta minutes={recipe.minutes} />
 
         <View style={st.servingsRow}>
-          <Text style={st.section}>Składniki</Text>
-          <View style={st.stepper}>
-            <Pressable onPress={() => setServings((s) => Math.max(1, s - 1))} style={st.stepBtn}>
-              <Text style={st.stepText}>−</Text>
+          <Text style={[st.section, { marginBottom: 0, flex: 1 }]}>Składniki</Text>
+          {editing ? null : (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Edytuj ilości"
+              hitSlop={8}
+              style={{ marginRight: 12 }}
+              onPress={() => {
+                setServings(recipe.servings);
+                setEditing({});
+              }}
+            >
+              <Icon name="create-outline" size={22} color={K.accent} />
             </Pressable>
-            <Text style={st.servings}>{servings} porcji</Text>
-            <Pressable onPress={() => setServings((s) => s + 1)} style={st.stepBtn}>
-              <Text style={st.stepText}>+</Text>
+          )}
+          <View style={st.stepper}>
+            <Pressable accessibilityLabel="Mniej porcji" onPress={() => setServings((s) => Math.max(1, s - 1))} style={st.stepBtn}>
+              <Icon name="remove" size={18} color={K.text} />
+            </Pressable>
+            <Icon name="people-outline" size={15} color={K.text} />
+            <Text style={st.servings}>{servings}</Text>
+            <Pressable accessibilityLabel="Więcej porcji" onPress={() => setServings((s) => s + 1)} style={st.stepBtn}>
+              <Icon name="add" size={18} color={K.text} />
             </Pressable>
           </View>
         </View>
@@ -233,24 +295,14 @@ function RecipeView(props: {
         ))}
         {editing ? (
           <View style={{ flexDirection: 'row', marginTop: 10 }}>
-            <Pressable style={[st.btn, { backgroundColor: K.soft }]} onPress={() => setEditing(null)}>
-              <Text style={[st.btnText, { color: K.text }]}>Anuluj</Text>
+            <Pressable accessibilityRole="button" accessibilityLabel="Anuluj" style={[st.btn, { backgroundColor: K.soft }]} onPress={() => setEditing(null)}>
+              <Icon name="close" size={22} color={K.text} />
             </Pressable>
-            <Pressable style={[st.btn, { marginLeft: 10 }]} onPress={saveEdits}>
-              <Text style={st.btnText}>Zapisz</Text>
+            <Pressable accessibilityRole="button" accessibilityLabel="Zapisz" style={[st.btn, { marginLeft: 10 }]} onPress={saveEdits}>
+              <Icon name="checkmark" size={22} color="#fff" />
             </Pressable>
           </View>
-        ) : (
-          <Pressable
-            style={[st.btn, { backgroundColor: K.soft, marginTop: 10 }]}
-            onPress={() => {
-              setServings(recipe.servings);
-              setEditing({});
-            }}
-          >
-            <Text style={[st.btnText, { color: K.text }]}>Edytuj ilości</Text>
-          </Pressable>
-        )}
+        ) : null}
 
         <Text style={[st.section, { marginTop: 22 }]}>Przygotowanie</Text>
         {recipe.steps.map((step, i) => (
@@ -260,7 +312,10 @@ function RecipeView(props: {
           </View>
         ))}
 
-        <Text style={[st.section, { marginTop: 22 }]}>Moje notatki</Text>
+        <View style={st.labelRow}>
+          <Icon name="create-outline" size={18} color={K.text} />
+          <Text style={[st.section, { marginBottom: 0 }]}>Notatki</Text>
+        </View>
         <TextInput
           {...secretSafeInput}
           multiline
@@ -269,7 +324,7 @@ function RecipeView(props: {
             setNote(t);
             setNoteSaved(false);
           }}
-          placeholder="np. mniej cukru, piec 5 minut dłużej"
+          placeholder="mniej cukru, piec 5 minut dłużej"
           placeholderTextColor={K.muted}
           style={st.note}
         />
@@ -284,7 +339,7 @@ function RecipeView(props: {
             setNoteSaved(true);
           }}
         >
-          <Text style={st.btnText}>{noteSaved ? 'Zapisano ✓' : 'Zapisz notatkę'}</Text>
+          {noteSaved ? <Icon name="checkmark" size={22} color="#fff" /> : <Text style={st.btnText}>Zapisz</Text>}
         </Pressable>
       </ScrollView>
     </SafeAreaView>
@@ -326,20 +381,27 @@ function AddRecipe({ check, onCancel, onSave }: { check: CoverProps['check']; on
   return (
     <SafeAreaView style={st.screen} edges={['top']}>
       <View style={st.topBar}>
-        <Pressable onPress={onCancel} hitSlop={10}>
-          <Text style={st.back}>‹ Anuluj</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel="Anuluj" onPress={onCancel} hitSlop={10}>
+          <Icon name="close" size={26} color={K.accent} />
         </Pressable>
-        <Pressable onPress={save} hitSlop={10}>
-          <Text style={[st.back, { fontWeight: '700' }]}>Zapisz</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel="Zapisz" onPress={save} hitSlop={10}>
+          <Icon name="checkmark" size={26} color={K.accent} />
         </Pressable>
       </View>
       <ScrollView contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
         <Text style={st.h1Recipe}>Nowy przepis</Text>
-        <Text style={st.label}>Nazwa</Text>
-        <TextInput {...secretSafeInput} value={name} onChangeText={setName} placeholder="np. Babka cytrynowa" placeholderTextColor={K.muted} style={st.field} />
-        <Text style={st.label}>Składniki (jeden w linii, np. „mąka 500 g”)</Text>
-        <TextInput multiline value={ingredients} onChangeText={setIngredients} style={[st.field, { minHeight: 120 }]} />
-        <Text style={st.label}>Kroki (jeden w linii)</Text>
+        <TextInput {...secretSafeInput} value={name} onChangeText={setName} placeholder="Nazwa" placeholderTextColor={K.muted} style={[st.field, { marginTop: 14 }]} />
+        <View style={st.labelRow}>
+          <Icon name="list-outline" size={18} color={K.text} />
+          <Text style={[st.label, { marginTop: 0, marginBottom: 0 }]}>Składniki</Text>
+          <Info text="Jeden składnik w linii, np. „mąka 500 g”." color={K.muted} />
+        </View>
+        <TextInput multiline value={ingredients} onChangeText={setIngredients} placeholder="mąka 500 g" placeholderTextColor={K.muted} style={[st.field, { minHeight: 120 }]} />
+        <View style={st.labelRow}>
+          <Icon name="reorder-four-outline" size={18} color={K.text} />
+          <Text style={[st.label, { marginTop: 0, marginBottom: 0 }]}>Kroki</Text>
+          <Info text="Jeden krok w linii." color={K.muted} />
+        </View>
         <TextInput multiline value={steps} onChangeText={setSteps} style={[st.field, { minHeight: 120 }]} />
       </ScrollView>
     </SafeAreaView>
@@ -350,25 +412,27 @@ const st = StyleSheet.create({
   screen: { flex: 1, backgroundColor: K.bg },
   h1: { fontSize: 28, fontWeight: '800', color: K.text, paddingHorizontal: 16, paddingTop: 12 },
   h1Recipe: { fontSize: 26, fontWeight: '800', color: K.text, marginBottom: 4 },
-  searchRow: { paddingHorizontal: 16, paddingVertical: 10 },
-  search: { backgroundColor: K.card, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, fontSize: 16, color: K.text, borderWidth: 1, borderColor: K.border },
-  chip: { borderRadius: 16, paddingHorizontal: 12, paddingVertical: 7, backgroundColor: K.soft, marginRight: 8 },
+  favs: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 14, paddingHorizontal: 10, paddingVertical: 5 },
+  favsText: { color: '#fff', fontWeight: '700' },
+  searchRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 14, paddingHorizontal: 12, backgroundColor: K.card, borderRadius: 12, borderWidth: 1, borderColor: K.border },
+  search: { flex: 1, paddingVertical: 11, fontSize: 16, color: K.text },
+  meta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  labelRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 22, marginBottom: 8 },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 7, backgroundColor: K.card, borderWidth: 1, borderColor: K.border, marginRight: 8 },
+  catIcon: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   chipOn: { backgroundColor: K.accent },
   chipText: { color: K.text, fontSize: 14 },
   card: { flexDirection: 'row', alignItems: 'center', backgroundColor: K.card, borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: K.border },
   cardTitle: { fontSize: 17, fontWeight: '700', color: K.text, marginBottom: 3 },
   muted: { color: K.muted, fontSize: 14 },
-  heart: { fontSize: 26, color: K.muted, paddingHorizontal: 4 },
-  fab: { position: 'absolute', right: 16, bottom: 28, backgroundColor: K.accent, borderRadius: 26, paddingHorizontal: 20, paddingVertical: 14, elevation: 4 },
-  fabText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  fab: { position: 'absolute', right: 16, bottom: 28, backgroundColor: K.accent, width: 58, height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center', elevation: 4 },
   topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10 },
   back: { color: K.accent, fontSize: 17 },
   section: { fontSize: 18, fontWeight: '700', color: K.text, marginBottom: 8 },
   servingsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 18 },
-  stepper: { flexDirection: 'row', alignItems: 'center', backgroundColor: K.soft, borderRadius: 18 },
-  stepBtn: { paddingHorizontal: 12, paddingVertical: 4 },
-  stepText: { fontSize: 20, color: K.text },
-  servings: { fontSize: 14, color: K.text, minWidth: 74, textAlign: 'center' },
+  stepper: { flexDirection: 'row', alignItems: 'center', backgroundColor: K.soft, borderRadius: 18, paddingHorizontal: 2 },
+  stepBtn: { paddingHorizontal: 10, paddingVertical: 6 },
+  servings: { fontSize: 14, fontWeight: '600', color: K.text, minWidth: 26, textAlign: 'center', marginLeft: 3 },
   ingredient: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: K.border },
   amount: { fontSize: 16, fontWeight: '600', color: K.text, minWidth: 50, textAlign: 'right' },
   amountInput: { fontSize: 16, color: K.text, minWidth: 70, textAlign: 'right', borderBottomWidth: 1, borderBottomColor: K.accent, paddingVertical: 2 },

@@ -3,10 +3,31 @@ import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, StyleSheet, Tex
 
 import { buildReportModel, type ReportModel } from '@/report/model';
 import { sharePackage, sharePdf } from '@/report/export';
+import { moneyAmounts } from '@/content/pieniadze';
+import { formatOccurred } from '@/ui/format';
 import { Btn, C, Chip, Field, Icon, P, VaultScreen, s, type IconName } from '@/ui/kit';
 import { themed } from '@/ui/theme';
-import type { Profile } from '@/vault/types';
+import type { EntryContent, Profile } from '@/vault/types';
 import { useSession } from '@/vault/session';
+
+/** One icon per kind of content in an entry, in a fixed order. */
+function contentIcons(c: EntryContent): IconName[] {
+  const kinds = new Set(c.attachments.map((a) => a.kind));
+  const icons: (IconName | false)[] = [
+    !!c.description && 'document-text-outline',
+    moneyAmounts(c).length > 0 && 'cash-outline',
+    (kinds.has('photo') || kinds.has('image')) && 'image-outline',
+    kinds.has('audio') && 'mic-outline',
+    kinds.has('document') && 'attach',
+  ];
+  return icons.filter((x): x is IconName => !!x);
+}
+
+/** "2026-09-01T..." -> "1.09" */
+const dayMonth = (local: string) => `${Number(local.slice(8, 10))}.${local.slice(5, 7)}`;
+
+const plural = (n: number, one: string, few: string, many: string) =>
+  n === 1 ? one : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? few : many;
 
 export default function Report() {
   const index = useSession((s) => s.index);
@@ -32,6 +53,15 @@ export default function Report() {
   // Approved AI sentences always go into the report, next to the original entries.
   const ai = index.aiSummary;
   const empty = model.entries.length === 0;
+  const first = model.entries[0]?.content.occurredAt;
+  const last = model.entries[model.entries.length - 1]?.content.occurredAt;
+  const range = first && last ? `${dayMonth(first)} – ${dayMonth(last)}.${last.slice(0, 4)}` : '';
+  // The preview shows each entry once, in its newest version (the report itself keeps every version).
+  const edited = new Set(model.entries.map((e) => e.content.correctionOf).filter(Boolean));
+  const current = model.entries.filter((e) => !edited.has(e.id));
+  const files = current.reduce((n, e) => n + e.content.attachments.length, 0);
+  const recent = current.slice(-4).reverse();
+  const allStamped = !empty && model.counts.stamped >= model.entries.length;
 
   const run = async (kind: 'pdf' | 'zip') => {
     setBusy(kind);
@@ -51,17 +81,39 @@ export default function Report() {
 
   return (
     <VaultScreen title="Eksport">
-      <View style={st.tiles}>
-        <Tile icon="document-text-outline" value={model.entries.length} label="wpisy" />
-        <Tile icon="attach" value={model.counts.attachments} label="załączniki" />
-        <Tile icon="shield-checkmark-outline" value={model.counts.stamped} label="ze znacznikiem czasu" color={C.ok} />
+      {/* A small preview of what the report contains, then one main action. */}
+      <View style={st.preview}>
+        <Text style={st.previewTitle}>
+          Raport{range ? ` · ${range}` : ''}
+        </Text>
+        <Text style={st.previewSub}>
+          {current.length} {plural(current.length, 'wpis', 'wpisy', 'wpisów')} · {files} {plural(files, 'załącznik', 'załączniki', 'załączników')}
+        </Text>
+        {recent.map((e) => (
+          <View key={e.id} style={st.previewRow}>
+            <Text style={st.previewDate} numberOfLines={1}>
+              {formatOccurred(e.content.occurredAt).replace(/, \d\d:\d\d$/, '')}
+            </Text>
+            {/* What the entry holds, as icons: description, amount, photos, recordings, files. */}
+            <View style={st.previewIcons}>
+              {contentIcons(e.content).map((name) => (
+                <Icon key={name} name={name} size={16} color={C.muted} />
+              ))}
+            </View>
+          </View>
+        ))}
       </View>
 
-      <View style={st.share}>
-        <ShareBtn icon="document-text-outline" title="PDF" sub="raport" busy={busy === 'pdf'} disabled={!!busy || empty} onPress={() => setAsking('pdf')} />
-        <ShareBtn icon="archive-outline" title="ZIP" sub="dowody + weryfikacja" busy={busy === 'zip'} disabled={!!busy || empty} onPress={() => setAsking('zip')} />
+      <Btn label="Udostępnij raport PDF" busy={busy === 'pdf'} disabled={!!busy || empty} onPress={() => setAsking('pdf')} style={{ marginTop: 16 }} />
+      <Pressable accessibilityRole="button" disabled={!!busy || empty} onPress={() => setAsking('zip')} style={st.zip} hitSlop={8}>
+        {busy === 'zip' ? <ActivityIndicator color={C.primary} /> : <Text style={[st.zipText, empty && { opacity: 0.45 }]}>Paczka dowodów (ZIP)</Text>}
+      </Pressable>
+      <View style={st.stamps}>
+        <Icon name={allStamped ? 'shield-checkmark' : 'hourglass-outline'} size={16} color={allStamped ? C.ok : C.warn} />
+        <Text style={st.stampsText}>
+          {allStamped ? 'Wszystkie wpisy ze znacznikiem czasu' : `${model.counts.stamped} z ${model.entries.length} ze znacznikiem czasu`}
+        </Text>
       </View>
-
 
       {asking ? (
         <ProfileSheet
@@ -115,42 +167,21 @@ function ProfileSheet({
   );
 }
 
-function Tile({ icon, value, label, color = C.primary }: { icon: IconName; value: number | string; label: string; color?: string }) {
-  return (
-    // Icon and number only; the label is for screen readers.
-    <View style={st.tile} accessible accessibilityLabel={`${label}: ${value}`}>
-      <Icon name={icon} size={20} color={color} />
-      <Text style={[st.tileValue, { color }]}>{value}</Text>
-    </View>
-  );
-}
 
-function ShareBtn(props: { icon: IconName; title: string; sub: string; busy: boolean; disabled: boolean; onPress: () => void }) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`Udostępnij ${props.title}`}
-      onPress={props.onPress}
-      disabled={props.disabled}
-      style={({ pressed }) => [st.shareBtn, (pressed || props.disabled) && { opacity: 0.6 }]}
-    >
-      {props.busy ? <ActivityIndicator color="#fff" /> : <Icon name={props.icon} size={30} color="#fff" />}
-      <Text style={st.shareTitle}>{props.title}</Text>
-      <Text style={st.shareSub}>{props.sub}</Text>
-    </Pressable>
-  );
-}
 
 const st = themed(() => StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)' },
   sheet: { backgroundColor: C.bg, borderTopLeftRadius: 18, borderTopRightRadius: 18, padding: 18, paddingBottom: 32, maxHeight: '80%' },
   sheetTitle: { fontSize: 18, fontWeight: '800', color: C.text, marginBottom: 12 },
   sheetLabel: { fontSize: 14, fontWeight: '600', color: C.text, marginBottom: 6 },
-  tiles: { flexDirection: 'row', gap: 8, marginBottom: 10 },
-  tile: { flex: 1, backgroundColor: C.surface, borderRadius: 12, paddingVertical: 12, alignItems: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: C.border },
-  tileValue: { fontSize: 22, fontWeight: '800', marginTop: 4 },
-  share: { flexDirection: 'row', gap: 10, marginTop: 4, marginBottom: 12 },
-  shareBtn: { flex: 1, backgroundColor: C.primary, borderRadius: 14, paddingVertical: 18, alignItems: 'center' },
-  shareTitle: { color: '#fff', fontSize: 18, fontWeight: '800', marginTop: 6 },
-  shareSub: { color: '#DCE4F0', fontSize: 12, marginTop: 2 },
+  preview: { backgroundColor: C.surface, borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: C.border, padding: 16 },
+  previewTitle: { fontSize: 16, fontWeight: '700', color: C.text },
+  previewSub: { fontSize: 13, color: C.muted, marginTop: 2, marginBottom: 8 },
+  previewRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.border },
+  previewDate: { fontSize: 13, color: C.text },
+  previewIcons: { flex: 1, flexDirection: 'row', justifyContent: 'flex-end', gap: 8 },
+  zip: { alignItems: 'center', paddingVertical: 12 },
+  zipText: { fontSize: 15, fontWeight: '600', color: C.primary },
+  stamps: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 4 },
+  stampsText: { fontSize: 13, color: C.muted },
 }));

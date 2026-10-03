@@ -1,15 +1,16 @@
 import { router } from 'expo-router';
 import { useEffect, useState, type ReactNode } from 'react';
-import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { coverSwitcherAvailable } from '../../modules/cover-switcher';
 
 import { useLatest } from '@/covers/ui/shared';
 import { aiReady } from '@/ai/config';
 import { ActionPicker, CoverPicker, KEY_IOS_NOTE } from '@/screens/CoverPicker';
-import { Btn, C, Field, H2, Icon, Info, List, Slider, Toggle, VaultScreen, type IconName } from '@/ui/kit';
+import { Btn, C, H2, Icon, Info, List, Slider, Toggle, VaultScreen, type IconName } from '@/ui/kit';
 import { themed } from '@/ui/theme';
 import { wipeEverything } from '@/vault/actions';
+import { markActivity } from '@/vault/quickExit';
 import { useSession } from '@/vault/session';
 import type { Profile, VaultIndex, VaultSettings } from '@/vault/types';
 
@@ -145,20 +146,28 @@ function SettingsForm({ index }: { index: VaultIndex }) {
 
       <H2>AI</H2>
       <List>
-        <SettingRow icon="sparkles-outline" label="Gemini" last>
+        <SettingRow icon="sparkles-outline" label="Gemini">
           <Icon name={aiReady ? 'checkmark-circle' : 'close-circle-outline'} size={18} color={aiReady ? C.ok : C.muted} />
           <Text style={[st.value, { color: aiReady ? C.ok : C.muted, marginLeft: 4 }]}>{aiReady ? 'połączone' : 'brak klucza'}</Text>
           {aiReady ? null : <Info text="Klucz z aistudio.google.com wpisz jako EXPO_PUBLIC_GEMINI_API_KEY w pliku .env.local i zbuduj aplikację ponownie." />}
         </SettingRow>
+        {/* Names typed here are swapped for [osoba A], [osoba B] before anything goes to the AI. */}
+        <SettingRow icon="eye-off-outline" label="Ukryj imiona" last>
+          <Info text="Wpisz imiona (także odmienione, np. Marek, Marka, Markiem). Zanim opis trafi do AI, zostaną zamienione na [osoba A], [osoba B]." />
+        </SettingRow>
+        <TextInput
+          style={st.names}
+          placeholder="Marek, Marka, Markiem"
+          placeholderTextColor="#9AA0A6"
+          autoCorrect={false}
+          value={profile.namesToHide}
+          onChangeText={(v) => {
+            markActivity();
+            setProfile({ ...profile, namesToHide: v });
+          }}
+          accessibilityLabel="Imiona do ukrycia przed AI"
+        />
       </List>
-      <Field
-        label="Imiona do ukrycia przed AI"
-        placeholder="Marek, Marka, Markiem"
-        value={profile.namesToHide}
-        onChangeText={(v) => setProfile({ ...profile, namesToHide: v })}
-        multiline
-        style={{ minHeight: 70 }}
-      />
 
       <H2>Dane</H2>
       <Btn kind="danger" label="Usuń wszystkie dane Teczki" onPress={wipe} />
@@ -186,5 +195,6 @@ const st = themed(() => StyleSheet.create({
   rowLabel: { flex: 1, fontSize: 16, color: C.text },
   value: { fontSize: 15, fontWeight: '600', color: C.primary },
   slider: { paddingHorizontal: 8, paddingBottom: 6 },
+  names: { marginHorizontal: 14, marginBottom: 12, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, backgroundColor: C.bg, fontSize: 15, color: C.text },
   plainRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, minHeight: 52 },
 }));

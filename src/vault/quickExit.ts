@@ -66,7 +66,8 @@ const DOUBLE_BACK_MS = 600;
 
 /** Installs every automatic exit for as long as a vault screen is mounted. */
 export function useVaultGuards(opts: { shakeToExit: boolean; autoLockMinutes: number }): { touch: () => void } {
-  ScreenCapture.usePreventScreenCapture('vault');
+  // DEMO: screenshots allowed for the pitch. Restore this line before real use.
+  // ScreenCapture.usePreventScreenCapture('vault');
 
   // Lock when the app goes to the background (home button, app switcher, incoming call).
   useEffect(() => {

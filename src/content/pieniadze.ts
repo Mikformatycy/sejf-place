@@ -48,14 +48,15 @@ export function formatAmount(grosze: number, currency = 'PLN'): string {
   const zl = Math.floor(grosze / 100)
     .toString()
     .replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-  const gr = String(grosze % 100).padStart(2, '0');
-  return `${zl},${gr} ${currency === 'PLN' ? 'zł' : currency}`;
+  // Whole złoty without ",00": "800 zł", "1 250,50 zł".
+  const gr = grosze % 100 ? `,${String(grosze % 100).padStart(2, '0')}` : '';
+  return `${zl}${gr} ${currency === 'PLN' ? 'zł' : currency}`;
 }
 
 /** Amount as typed in the form ("1250,50"), the inverse of parseAmount. */
 export const amountField = (grosze: number) => `${Math.floor(grosze / 100)}${grosze % 100 ? `,${String(grosze % 100).padStart(2, '0')}` : ''}`;
 
-/** A ticked detail with its amount, if she gave one: "odmowa pieniędzy: 800,00 zł". */
+/** A ticked detail with its amount, if she gave one: "odmowa pieniędzy: 800 zł". */
 export const tagText = (tag: string, items: MoneyAmount[]) => {
   const a = items.find((x) => x.tag === tag);
   return a ? `${tag}: ${formatAmount(a.amount, a.currency)}` : tag;

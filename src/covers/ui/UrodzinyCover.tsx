@@ -4,7 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ageAtNextBirthday, daysUntilBirthday, isValidDate } from '@/covers/calendar';
 import { plural } from '@/ui/format';
+import { Icon, Info } from '@/ui/kit';
 
+import { Backdrop, Hero, HeroBtn, tint } from './decor';
 import { newId, secretSafeInput, usePersisted, type CoverProps } from './shared';
 
 interface Person {
@@ -17,6 +19,10 @@ interface Person {
 }
 
 const U = { bg: '#FFF6F8', card: '#FFFFFF', text: '#3B2230', muted: '#8C6B7A', accent: '#D6457A', soft: '#FBE3EC', border: '#F1D5E0' };
+
+// Each person gets their own party colour.
+const AVATARS = ['#F06292', '#FFB300', '#4FC3F7', '#9575CD', '#81C784', '#FF8A65'];
+const PARTY = ['#F06292', '#FFB300', '#4FC3F7', '#9575CD'];
 
 const MONTHS = ['stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca', 'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia'];
 
@@ -36,6 +42,7 @@ type Screen = { name: 'list' } | { name: 'person'; id: string } | { name: 'add' 
 export default function UrodzinyCover({ check }: CoverProps) {
   const [people, setPeople, loaded] = usePersisted<Person[]>('urodziny.people', []);
   const [screen, setScreen] = useState<Screen>({ name: 'list' });
+  const [byName, setByName] = usePersisted<boolean>('urodziny.byName', false);
   const today = new Date();
 
   if (!loaded) return <View style={{ flex: 1, backgroundColor: U.bg }} />;
@@ -71,30 +78,64 @@ export default function UrodzinyCover({ check }: CoverProps) {
     }
   }
 
+  const next = [...people].map((p) => ({ p, days: daysUntilBirthday(p.day, p.month, today) })).sort((a, b) => a.days - b.days)[0];
   const sorted = [...people]
     .map((p) => ({ p, days: daysUntilBirthday(p.day, p.month, today) }))
-    .sort((a, b) => a.days - b.days || a.p.name.localeCompare(b.p.name));
+    .sort((a, b) => (byName ? a.p.name.localeCompare(b.p.name) : a.days - b.days || a.p.name.localeCompare(b.p.name)));
 
   return (
-    <SafeAreaView style={st.screen} edges={['top']}>
-      <Text style={st.h1}>Urodziny</Text>
+    <SafeAreaView style={st.screen} edges={[]}>
+      <Backdrop icons={['balloon-outline', 'gift-outline', 'sparkles-outline', 'star-outline', 'musical-notes-outline']} colors={PARTY} />
+      <Hero
+        color={U.accent}
+        title="Urodziny"
+        icons={['balloon-outline', 'gift-outline', 'sparkles-outline', 'star-outline']}
+        right={
+          <>
+            <Info text="Dodaj bliskich, a zobaczysz, ile zostało do ich urodzin." color="#fff" />
+            <HeroBtn icon={byName ? 'text-outline' : 'calendar-outline'} label={byName ? 'Sortuj według daty' : 'Sortuj alfabetycznie'} onPress={() => setByName(!byName)} />
+          </>
+        }
+      >
+        {next ? (
+          <Pressable onPress={() => setScreen({ name: 'person', id: next.p.id })} style={st.next}>
+            <View style={[st.avatar, { backgroundColor: tint(next.p.name, AVATARS), borderWidth: 2, borderColor: '#fff' }]}>
+              <Text style={st.avatarText}>{next.p.name.slice(0, 1).toUpperCase()}</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={st.nextName}>{next.p.name}</Text>
+              <Text style={st.nextWhen}>{whenLabel(next.days)}</Text>
+            </View>
+            <Icon name={next.days === 0 ? 'gift' : 'balloon'} size={30} color="#fff" />
+          </Pressable>
+        ) : null}
+      </Hero>
       <FlatList
         data={sorted}
         keyExtractor={(x) => x.p.id}
         contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
-        ListEmptyComponent={<Text style={st.empty}>Nie masz jeszcze nikogo na liście. Dodaj bliskich, a przypomnimy o ich urodzinach.</Text>}
+        ListEmptyComponent={
+          <View style={{ alignItems: 'center', marginTop: 50, gap: 8 }}>
+            <Icon name="gift-outline" size={44} color={U.border} />
+            <Text style={st.empty}>Brak osób</Text>
+          </View>
+        }
         renderItem={({ item: { p, days } }) => (
           <Pressable onPress={() => setScreen({ name: 'person', id: p.id })} style={[st.card, days === 0 && st.today]}>
+            <View style={[st.avatar, { backgroundColor: tint(p.name, AVATARS) }]}>
+              <Text style={st.avatarText}>{p.name.slice(0, 1).toUpperCase()}</Text>
+            </View>
             <View style={{ flex: 1 }}>
               <Text style={st.name}>{p.name}</Text>
               <Text style={st.muted}>{dateLabel({ day: p.day, month: p.month })}</Text>
             </View>
-            <Text style={[st.when, days <= 7 && { color: U.accent }]}>{whenLabel(days)}</Text>
+            {days === 0 ? <Icon name="gift" size={18} color={U.accent} /> : null}
+            <Text style={[st.when, days <= 7 && st.soon]}>{whenLabel(days)}</Text>
           </Pressable>
         )}
       />
-      <Pressable style={st.fab} onPress={() => setScreen({ name: 'add' })}>
-        <Text style={st.fabText}>+ Dodaj osobę</Text>
+      <Pressable accessibilityRole="button" accessibilityLabel="Dodaj osobę" style={st.fab} onPress={() => setScreen({ name: 'add' })}>
+        <Icon name="person-add" size={24} color="#fff" />
       </Pressable>
     </SafeAreaView>
   );
@@ -116,13 +157,29 @@ function PersonView(props: {
 
   return (
     <SafeAreaView style={st.screen} edges={['top']}>
-      <Pressable onPress={props.onBack} hitSlop={10} style={st.topBar}>
-        <Text style={st.link}>‹ Urodziny</Text>
-      </Pressable>
+      <View style={[st.topBar, st.bar]}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Wróć" onPress={props.onBack} hitSlop={10}>
+          <Icon name="chevron-back" size={26} color={U.accent} />
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Usuń z listy"
+          hitSlop={10}
+          onPress={() =>
+            Alert.alert(`Usunąć: ${person.name}?`, undefined, [
+              { text: 'Anuluj', style: 'cancel' },
+              { text: 'Usuń', style: 'destructive', onPress: props.onDelete },
+            ])
+          }
+        >
+          <Icon name="trash-outline" size={22} color={U.muted} />
+        </Pressable>
+      </View>
       <ScrollView contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
         <Text style={st.h1Detail}>{person.name}</Text>
         <Text style={st.muted}>{dateLabel(person)}</Text>
-        <View style={st.countdown}>
+        <View style={[st.countdown, { backgroundColor: tint(person.name, AVATARS) + '22' }]}>
+          <Icon name={days === 0 ? 'gift' : 'balloon-outline'} size={30} color={tint(person.name, AVATARS)} />
           <Text style={st.countdownBig}>{whenLabel(days)}</Text>
           {age !== null ? (
             <Text style={st.muted}>
@@ -131,7 +188,10 @@ function PersonView(props: {
           ) : null}
         </View>
 
-        <Text style={st.label}>Pomysł na prezent</Text>
+        <View style={st.labelRow}>
+          <Icon name="gift-outline" size={18} color={U.text} />
+          <Text style={[st.label, { marginTop: 0, marginBottom: 0 }]}>Prezent</Text>
+        </View>
         <TextInput
           {...secretSafeInput}
           multiline
@@ -140,7 +200,7 @@ function PersonView(props: {
             setGift(t);
             setSaved(false);
           }}
-          placeholder="np. książka, perfumy, kubek"
+          placeholder="książka, perfumy, kubek"
           placeholderTextColor={U.muted}
           style={[st.input, { minHeight: 80, textAlignVertical: 'top' }]}
         />
@@ -155,18 +215,7 @@ function PersonView(props: {
             setSaved(true);
           }}
         >
-          <Text style={st.btnText}>{saved ? 'Zapisano ✓' : 'Zapisz'}</Text>
-        </Pressable>
-        <Pressable
-          style={[st.btn, { backgroundColor: 'transparent' }]}
-          onPress={() =>
-            Alert.alert(`Usunąć: ${person.name}?`, undefined, [
-              { text: 'Anuluj', style: 'cancel' },
-              { text: 'Usuń', style: 'destructive', onPress: props.onDelete },
-            ])
-          }
-        >
-          <Text style={[st.btnText, { color: U.muted }]}>Usuń z listy</Text>
+          {saved ? <Icon name="checkmark" size={22} color="#fff" /> : <Text style={st.btnText}>Zapisz</Text>}
         </Pressable>
       </ScrollView>
     </SafeAreaView>
@@ -201,18 +250,21 @@ function AddPerson({ check, onCancel, onSave }: { check: CoverProps['check']; on
   return (
     <SafeAreaView style={st.screen} edges={['top']}>
       <View style={[st.topBar, { flexDirection: 'row', justifyContent: 'space-between' }]}>
-        <Pressable onPress={onCancel} hitSlop={10}>
-          <Text style={st.link}>‹ Anuluj</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel="Anuluj" onPress={onCancel} hitSlop={10}>
+          <Icon name="close" size={26} color={U.accent} />
         </Pressable>
-        <Pressable onPress={save} hitSlop={10}>
-          <Text style={[st.link, { fontWeight: '700' }]}>Zapisz</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel="Zapisz" onPress={save} hitSlop={10}>
+          <Icon name="checkmark" size={26} color={U.accent} />
         </Pressable>
       </View>
       <ScrollView contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
         <Text style={st.h1Detail}>Nowa osoba</Text>
-        <Text style={st.label}>Imię</Text>
-        <TextInput {...secretSafeInput} value={name} onChangeText={setName} placeholder="np. Kasia" placeholderTextColor={U.muted} style={st.input} />
-        <Text style={st.label}>Data urodzin (rok nieobowiązkowy)</Text>
+        <TextInput {...secretSafeInput} value={name} onChangeText={setName} placeholder="Imię" placeholderTextColor={U.muted} style={[st.input, { marginTop: 14 }]} />
+        <View style={[st.labelRow, { marginTop: 14 }]}>
+          <Icon name="calendar-outline" size={18} color={U.text} />
+          <Text style={[st.label, { marginTop: 0, marginBottom: 0 }]}>Data urodzin</Text>
+          <Info text="Rok możesz pominąć." color={U.muted} />
+        </View>
         <View style={st.dateRow}>
           <TextInput keyboardType="number-pad" value={d} onChangeText={(v) => setD(digits(v, 2))} placeholder="DD" placeholderTextColor={U.muted} style={[st.input, st.dateInput]} />
           <Text style={st.sep}>.</Text>
@@ -231,15 +283,24 @@ const st = StyleSheet.create({
   h1: { fontSize: 28, fontWeight: '800', color: U.text, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 },
   h1Detail: { fontSize: 26, fontWeight: '800', color: U.text, marginBottom: 2 },
   topBar: { paddingHorizontal: 16, paddingVertical: 10 },
+  bar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  titleRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 },
+  labelRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 14, marginBottom: 6 },
+  avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: U.soft, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  avatarText: { fontSize: 17, fontWeight: '700', color: '#fff' },
+  next: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 14, padding: 12, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.18)' },
+  nextName: { fontSize: 18, fontWeight: '800', color: '#fff' },
+  nextWhen: { fontSize: 14, color: '#FFE6EF', marginTop: 1 },
+  sortBtn: { flexDirection: 'row', alignItems: 'center', gap: 2, backgroundColor: U.card, borderRadius: 16, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: U.border },
+  soon: { color: '#fff', backgroundColor: U.accent, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden' },
   link: { color: U.accent, fontSize: 17 },
-  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: U.card, borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: U.border },
+  card: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: U.card, borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: U.border },
   today: { borderColor: U.accent, borderWidth: 2 },
   name: { fontSize: 17, fontWeight: '700', color: U.text, marginBottom: 2 },
   muted: { color: U.muted, fontSize: 14 },
   when: { fontSize: 15, fontWeight: '600', color: U.text, marginLeft: 8 },
-  empty: { textAlign: 'center', color: U.muted, marginTop: 40, paddingHorizontal: 20, lineHeight: 21 },
-  fab: { position: 'absolute', right: 16, bottom: 28, backgroundColor: U.accent, borderRadius: 26, paddingHorizontal: 20, paddingVertical: 14, elevation: 4 },
-  fabText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  empty: { textAlign: 'center', color: U.muted },
+  fab: { position: 'absolute', right: 16, bottom: 28, backgroundColor: U.accent, width: 58, height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center', elevation: 4 },
   countdown: { backgroundColor: U.soft, borderRadius: 16, padding: 18, alignItems: 'center', marginVertical: 16 },
   countdownBig: { fontSize: 30, fontWeight: '800', color: U.accent },
   label: { fontSize: 14, fontWeight: '600', color: U.text, marginTop: 14, marginBottom: 6 },
