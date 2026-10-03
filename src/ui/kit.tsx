@@ -125,20 +125,21 @@ export function Slider({
 }
 
 // Eight small offsets around the letters; drawn behind a copy filled with the background.
+// 1.5 pt, the stroke of the outline icons next to it in the header.
 const OUTLINE = [
-  [-1.2, -1.2],
-  [1.2, -1.2],
-  [-1.2, 1.2],
-  [1.2, 1.2],
+  [-1.06, -1.06],
+  [1.06, -1.06],
+  [-1.06, 1.06],
+  [1.06, 1.06],
   [0, -1.5],
   [0, 1.5],
   [-1.5, 0],
   [1.5, 0],
 ];
 
-/** Hollow lettering (only the outline), for the app's name. Plain Text views, no images or fonts. */
+/** Hollow lettering (only the outline) in Lexend, for the app's name. Plain Text views, no images. */
 export function OutlineText({ text, size = 22, color = C.primary, fill = C.surface }: { text: string; size?: number; color?: string; fill?: string }) {
-  const base = { fontSize: size, fontWeight: '900' as const, letterSpacing: 0.6 };
+  const base = { fontSize: size, fontFamily: 'Lexend_600SemiBold', letterSpacing: size * 0.14 };
   return (
     <View accessible accessibilityRole="header" accessibilityLabel={text}>
       {OUTLINE.map(([x, y], i) => (
@@ -182,10 +183,13 @@ export function VaultScreen({
   actions = [],
   overlay,
   brand,
+  bareFooter,
 }: {
   title: string;
   /** Show the title as the app's hollow logotype (main screen only). */
   brand?: boolean;
+  /** The footer draws its own bar (e.g. with a button rising above it). */
+  bareFooter?: boolean;
   back?: boolean;
   children: ReactNode;
   scroll?: boolean;
@@ -221,7 +225,7 @@ export function VaultScreen({
         )}
         {overlay}
       </View>
-      {footer ? <View style={s.footer}>{footer}</View> : null}
+      {footer ? <View style={bareFooter ? undefined : s.footer}>{footer}</View> : null}
     </SafeAreaView>
   );
 }

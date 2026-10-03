@@ -2,7 +2,7 @@ import { createAudioPlayer, type AudioPlayer } from 'expo-audio';
 import type { File } from 'expo-file-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Animated, Easing, Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AiError, requestRewrite } from '@/ai/client';
 import { aiReady } from '@/ai/config';
@@ -120,25 +120,40 @@ export default function EntryDetail() {
     : [];
 
   // The entry's tools stay in one place at the bottom.
+  // The bar sits low and the round "głos rozsądku" rises above it; everything stays inside the
+  // footer's own box, so nothing is clipped and the whole circle can be tapped.
   const footer = c ? (
-    <View style={st.tools}>
-      <Tool icon="scale-outline" label="Prawo" onPress={() => router.push({ pathname: '/sejf/prawo', params: { id: entry.id } })} />
-      <Tool icon="sparkles-outline" label="Jak poważne to jest? (AI)" iconOnly ai busy={assessing} onPress={assess} />
-      <Tool icon="color-wand-outline" label="Uporządkuj" ai busy={tidying} onPress={tidy} />
+    <View>
+      <View style={st.tools}>
+        <Tool icon="scale-outline" label="Prawo" onPress={() => router.push({ pathname: '/sejf/prawo', params: { id: entry.id } })} />
+        <View style={{ width: REASON_W }} />
+        <Tool icon="color-wand-outline" label="Uporządkuj" ai busy={tidying} onPress={tidy} />
+      </View>
+      <View style={st.reasonWrap} pointerEvents="box-none">
+        <ReasonButton busy={assessing} onPress={assess} />
+      </View>
     </View>
   ) : undefined;
 
   const added = versions[0];
   const lastEdit = versions.length > 1 ? versions[versions.length - 1] : null;
+  // "Added" repeats the date above when the entry was written right away; shown only if it was later.
+  const addedOccurred = added.content?.occurredAt ?? c?.occurredAt;
+  const addedLater = !addedOccurred || Math.abs(Date.parse(added.createdAt) - new Date(addedOccurred).getTime()) > 30 * 60_000;
 
   return (
-    <VaultScreen title={c ? formatOccurred(c.occurredAt, c.occurredApprox) : 'Usunięty wpis'} actions={actions} footer={footer}>
+    <VaultScreen title={c ? '' : 'Usunięty wpis'} actions={actions} footer={footer} bareFooter>
       {assessment ? <SeverityCard a={assessment} /> : null}
       {assessment === null ? <P muted>Model nie rozpoznał tu przemocy.</P> : null}
       {assessError ? <Text style={st.error}>{assessError}</Text> : null}
 
       {c ? (
         <>
+          {/* When it happened: the one date on this screen (the header keeps only the tools). */}
+          <View style={st.when}>
+            <Icon name="calendar-outline" size={18} color={C.muted} />
+            <Text style={st.whenText}>{formatOccurred(c.occurredAt, c.occurredApprox)}</Text>
+          </View>
           <Text style={st.label}>Opis</Text>
           {aiItems.length > 0 ? (
             <View style={st.seg}>
@@ -153,7 +168,7 @@ export default function EntryDetail() {
               </Text>
             ))
           ) : (
-            <Text style={st.body}>{c.description || '(bez opisu)'}</Text>
+            <Text style={st.body}>{c.description || '-'}</Text>
           )}
           {c.injuriesDescription ? <Text style={[st.body, { color: C.muted }]}>{c.injuriesDescription}</Text> : null}
 
@@ -198,8 +213,9 @@ export default function EntryDetail() {
       <Pressable accessibilityRole="button" accessibilityState={{ expanded: showHistory }} onPress={() => setShowHistory((v) => !v)} style={st.history}>
         <Icon name={entry.tsa ? 'shield-checkmark' : 'hourglass-outline'} size={16} color={entry.tsa ? C.ok : C.warn} />
         <Text style={st.historyText}>
-          Dodano {shortStamp(added.createdAt)}
-          {lastEdit ? ` · edytowano ${shortStamp(lastEdit.createdAt)}` : ''}
+          {[addedLater ? `Dodano ${shortStamp(added.createdAt)}` : null, lastEdit ? `edytowano ${shortStamp(lastEdit.createdAt)}` : null]
+            .filter(Boolean)
+            .join(' · ') || 'Znacznik czasu'}
         </Text>
       </Pressable>
       {showHistory ? (
@@ -254,6 +270,83 @@ function Tool({ icon, label, onPress, ai, busy, iconOnly }: { icon: IconName; la
       {busy ? <ActivityIndicator color={color} /> : <Icon name={icon} size={iconOnly ? 26 : 22} color={color} />}
       {iconOnly ? null : <Text style={[st.toolText, { color }]}>{label}</Text>}
     </Pressable>
+  );
+}
+
+const REASON = 'GŁOS ROZSĄDKU';
+const REASON_D = 80; // diameter of the button
+const REASON_W = 140; // box around it, with room for the lettering
+const REASON_H = 116;
+const REASON_CX = REASON_W / 2;
+const REASON_CY = 68; // the lettering needs ~ARC_R + 8 above the centre
+const BAR_H = 60; // height of the tool bar the button sits on
+const ARC_R = 58; // radius of the lettering around the button
+const ARC_SPAN = 140; // degrees the lettering covers, centred on the top
+
+/**
+ * The AI's opinion of the entry: a big round button that rises above the bar, with
+ * "głos rozsądku" written along its rim (each letter placed and turned on the arc).
+ * It squashes a little when pressed and sends out a soft pulse while the AI thinks.
+ */
+function ReasonButton({ busy, onPress }: { busy: boolean; onPress: () => void }) {
+  const chars = [...REASON];
+  const step = ARC_SPAN / (chars.length - 1);
+  const [scale] = useState(() => new Animated.Value(1));
+  const [pulse] = useState(() => new Animated.Value(0));
+
+  // Native-driver animations only (transform and opacity), so they cost the JS thread nothing.
+  useEffect(() => {
+    if (!busy) {
+      pulse.setValue(0);
+      return;
+    }
+    const loop = Animated.loop(Animated.timing(pulse, { toValue: 1, duration: 1100, easing: Easing.out(Easing.quad), useNativeDriver: true }));
+    loop.start();
+    return () => loop.stop();
+  }, [busy, pulse]);
+
+  const press = (to: number) => Animated.spring(scale, { toValue: to, friction: to < 1 ? 6 : 3, tension: 160, useNativeDriver: true }).start();
+
+  return (
+    <View style={st.reason}>
+      {chars.map((ch, i) => {
+        const deg = -ARC_SPAN / 2 + i * step;
+        const rad = (deg * Math.PI) / 180;
+        return (
+          <Text
+            key={i}
+            importantForAccessibility="no"
+            style={[
+              st.arcChar,
+              { left: REASON_CX - 7 + ARC_R * Math.sin(rad), top: REASON_CY - 9 - ARC_R * Math.cos(rad), transform: [{ rotate: `${deg}deg` }] },
+            ]}
+          >
+            {ch}
+          </Text>
+        );
+      })}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          st.reasonCircle,
+          st.reasonHalo,
+          { opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.45, 0] }), transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.45] }) }] },
+        ]}
+      />
+      <Animated.View style={[st.reasonCircle, { transform: [{ scale }] }]}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Głos rozsądku: jak poważne to jest"
+          onPress={onPress}
+          onPressIn={() => press(0.88)}
+          onPressOut={() => press(1)}
+          disabled={busy}
+          style={st.reasonBtn}
+        >
+          {busy ? <ActivityIndicator color="#fff" /> : <Icon name="sparkles" size={36} color="#fff" />}
+        </Pressable>
+      </Animated.View>
+    </View>
   );
 }
 
@@ -409,6 +502,8 @@ const SOURCE = { camera: 'aparat', microphone: 'mikrofon', gallery: 'galeria', f
 
 const st = themed(() => StyleSheet.create({
   label: { fontSize: 13, color: C.muted, marginTop: 18, marginBottom: 6 },
+  when: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  whenText: { fontSize: 20, fontWeight: '700', color: C.text },
   body: { fontSize: 16, lineHeight: 23, color: C.text, marginBottom: 4 },
   seg: { flexDirection: 'row', alignSelf: 'flex-start', borderWidth: StyleSheet.hairlineWidth, borderColor: C.border, borderRadius: 8, overflow: 'hidden', marginBottom: 8 },
   segBtn: { paddingHorizontal: 12, paddingVertical: 5 },
@@ -421,7 +516,14 @@ const st = themed(() => StyleSheet.create({
   historyText: { fontSize: 13, color: C.muted },
   details: { paddingLeft: 22, paddingBottom: 8 },
   version: { paddingVertical: 4 },
-  tools: { flexDirection: 'row', margin: -12 },
+  // The bar is centred on the button: its middle line runs through the circle's centre.
+  tools: { flexDirection: 'row', alignItems: 'center', marginTop: REASON_CY - BAR_H / 2, height: BAR_H, marginBottom: REASON_H - REASON_CY - BAR_H / 2, backgroundColor: C.surface, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.border },
+  reasonWrap: { position: 'absolute', top: 0, left: 0, right: 0, alignItems: 'center' },
+  reason: { width: REASON_W, height: REASON_H },
+  arcChar: { position: 'absolute', width: 14, textAlign: 'center', fontSize: 11, fontWeight: '700', color: C.ai },
+  reasonCircle: { position: 'absolute', top: REASON_CY - REASON_D / 2, left: REASON_CX - REASON_D / 2, width: REASON_D, height: REASON_D, borderRadius: REASON_D / 2 },
+  reasonHalo: { backgroundColor: C.ai },
+  reasonBtn: { flex: 1, borderRadius: REASON_D / 2, backgroundColor: C.ai, alignItems: 'center', justifyContent: 'center', borderWidth: 4, borderColor: C.surface, elevation: 5, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 7, shadowOffset: { width: 0, height: 3 } },
   tool: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, paddingVertical: 8, borderRadius: 8 },
   toolText: { fontSize: 12, fontWeight: '600' },
   media: { marginTop: 4, marginBottom: 8 },

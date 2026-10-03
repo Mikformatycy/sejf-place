@@ -49,7 +49,6 @@ function Step({ icon, text }: { icon: IconName; text: string }) {
 
 const st = themed(() => StyleSheet.create({
   content: { flexGrow: 1, justifyContent: 'center', padding: 24 },
-  title: { fontSize: 32, fontWeight: '800', color: C.text, marginBottom: 10 },
   steps: { flexDirection: 'row', justifyContent: 'space-around', marginVertical: 32 },
   step: { alignItems: 'center', gap: 8 },
   stepIcon: { width: 56, height: 56, borderRadius: 28, backgroundColor: C.primarySoft, alignItems: 'center', justifyContent: 'center' },

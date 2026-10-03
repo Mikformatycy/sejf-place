@@ -1,3 +1,4 @@
+import { Lexend_600SemiBold, useFonts } from '@expo-google-fonts/lexend';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
@@ -8,6 +9,8 @@ import { useSession } from '@/vault/session';
 
 export default function RootLayout() {
   const booted = useSession((s) => s.booted);
+  // The logotype's font; until it loads the name shows in the system font (nothing waits for it).
+  useFonts({ Lexend_600SemiBold });
 
   useEffect(() => {
     void useSession.getState().boot();

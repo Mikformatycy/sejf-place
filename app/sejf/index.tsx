@@ -5,7 +5,7 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { FORMS, formLabel } from '@/content/formy';
 import { amountTotal, formatAmount, moneyAmounts } from '@/content/pieniadze';
 import { fileExt, formatOccurred, formatSeconds } from '@/ui/format';
-import { C, H2, Icon, IconBtn, P, VaultScreen } from '@/ui/kit';
+import { C, Icon, IconBtn, P, VaultScreen } from '@/ui/kit';
 import { formColor } from '@/ui/formColors';
 import { themed } from '@/ui/theme';
 import { stampNow } from '@/vault/actions';
@@ -114,7 +114,7 @@ export default function Timeline() {
         </View>
       )}
 
-      <H2>Wpisy ({sorted.length})</H2>
+      <Text style={st.listLabel}>Wpisy ({sorted.length})</Text>
       {sorted.length === 0 ? (
         <View style={st.empty}>
           <Icon name="folder-open-outline" size={48} color={C.border} />
@@ -240,6 +240,8 @@ const st = themed(() => StyleSheet.create({
     paddingVertical: 4,
     marginBottom: 6,
   },
+  // Same look as the other section headers, but closer to the top so the entries start higher.
+  listLabel: { fontSize: 13, fontWeight: '700', color: C.muted, textTransform: 'uppercase', letterSpacing: 0.4, marginTop: 2, marginBottom: 8 },
   empty: { alignItems: 'center', paddingVertical: 40, gap: 8 },
   emptyText: { color: C.muted, fontSize: 15 },
   pendingText: { flex: 1, color: C.warn, fontSize: 14, marginLeft: 8 },
