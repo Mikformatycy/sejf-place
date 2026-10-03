@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Weryfikator pakietu</title>
+  <style>
+    :root {
+      --bg: #f6f4f1; --surface: #ffffff; --text: #1f2328; --muted: #5e6670; --border: #e2ddd6;
+      --primary: #33507a; --ok: #2e7454; --ok-bg: #e1f1e8; --fail: #b3261e; --fail-bg: #fbe4e2; --warn: #9a6a12; --warn-bg: #fbf0d9;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #16181b; --surface: #1f2226; --text: #e8eaed; --muted: #a2a9b1; --border: #33373d;
+        --primary: #9db8e0; --ok: #7fd1a6; --ok-bg: #1d3328; --fail: #ff9a92; --fail-bg: #3a1f1d; --warn: #f0c46a; --warn-bg: #3a2f17;
+      }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    main { max-width: 980px; margin: 0 auto; padding: 32px 16px 64px; }
+    h1 { font-size: 26px; margin: 0 0 6px; }
+    .lead { color: var(--muted); margin: 0 0 22px; }
+    #drop { display: block; border: 2px dashed var(--border); border-radius: 14px; background: var(--surface); padding: 36px 16px; text-align: center; cursor: pointer; }
+    #drop.over { border-color: var(--primary); }
+    #drop strong { color: var(--primary); }
+    #file { display: none; }
+    .summary { margin: 24px 0 8px; padding: 14px 16px; border-radius: 12px; font-weight: 600; }
+    .summary.ok { background: var(--ok-bg); color: var(--ok); }
+    .summary.fail { background: var(--fail-bg); color: var(--fail); }
+    .muted { color: var(--muted); font-size: 13px; }
+    .fail { color: var(--fail); }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: 12px; overflow: hidden; margin: 12px 0; display: block; overflow-x: auto; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; font-size: 14px; }
+    th { color: var(--muted); font-weight: 600; }
+    .b { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12.5px; }
+    .b.ok { background: var(--ok-bg); color: var(--ok); }
+    .b.fail { background: var(--fail-bg); color: var(--fail); }
+    .b.warn { background: var(--warn-bg); color: var(--warn); }
+    .b.muted { color: var(--muted); }
+    code { font-size: 13px; }
+    footer { margin-top: 32px; color: var(--muted); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Weryfikator pakietu dowodów</h1>
+    <p class="lead">Sprawdza sumy kontrolne plików, łańcuch wpisów i podpisy znaczników czasu RFC 3161. Wszystko dzieje się w tej przeglądarce: plik nie jest nigdzie wysyłany.</p>
+    <label id="drop" for="file">
+      Przeciągnij tutaj plik <strong>teczka-…zip</strong> albo kliknij, aby wybrać.
+      <input id="file" type="file" accept=".zip,application/zip" />
+    </label>
+    <div id="out"></div>
+    <footer>Znacznik czasu potwierdza, że dane istniały najpóźniej w podanej chwili i od tamtej pory się nie zmieniły. Nie potwierdza czasu samego zdarzenia ani prawdziwości treści.</footer>
+  </main>
+  <script src="./verify.js"></script>
+</body>
+</html>

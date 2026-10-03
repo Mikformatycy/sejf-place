@@ -1,0 +1,18 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-label="Ikona Licznik wody: kropla w pierścieniu postępu">
+    <defs>
+      <linearGradient id="gwG" x1="0" y1="0" x2="0.35" y2="1">
+        <stop offset="0" stop-color="#5BD3F7"></stop>
+        <stop offset="1" stop-color="#1A7FDB"></stop>
+      </linearGradient>
+      <filter id="gwS" x="-25%" y="-25%" width="150%" height="160%">
+        <feDropShadow dx="0" dy="20" stdDeviation="24" flood-color="#08436F" flood-opacity="0.32"></feDropShadow>
+      </filter>
+    </defs>
+    <rect width="1024" height="1024" fill="url(#gwG)"></rect>
+    <circle cx="512" cy="512" r="290" fill="none" stroke="#FFFFFF" stroke-opacity="0.28" stroke-width="40"></circle>
+    <g filter="url(#gwS)">
+      <path d="M512 222 A290 290 0 1 1 222 512" fill="none" stroke="#FFFFFF" stroke-width="40" stroke-linecap="round"></path>
+      <path d="M512 300 C512 300 380 456 380 592 A132 132 0 0 0 644 592 C644 456 512 300 512 300 Z" fill="#FFFFFF"></path>
+    </g>
+    <path d="M440 600 A72 72 0 0 0 502 668" fill="none" stroke="#BFE9FA" stroke-width="18" stroke-linecap="round"></path>
+  </svg>

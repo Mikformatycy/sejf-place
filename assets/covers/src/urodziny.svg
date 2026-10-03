@@ -1,0 +1,25 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-label="Ikona Kalendarz urodzin: kartka kalendarza z tortem">
+    <defs>
+      <linearGradient id="gcG" x1="0" y1="0" x2="0.35" y2="1">
+        <stop offset="0" stop-color="#FF8FB4"></stop>
+        <stop offset="1" stop-color="#E5336E"></stop>
+      </linearGradient>
+      <filter id="gcS" x="-25%" y="-25%" width="150%" height="160%">
+        <feDropShadow dx="0" dy="20" stdDeviation="24" flood-color="#7A0F33" flood-opacity="0.32"></feDropShadow>
+      </filter>
+      <filter id="gcS2" x="-60%" y="-30%" width="220%" height="170%">
+        <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#7A0F33" flood-opacity="0.28"></feDropShadow>
+      </filter>
+    </defs>
+    <rect width="1024" height="1024" fill="url(#gcG)"></rect>
+    <rect x="300" y="276" width="424" height="470" rx="56" fill="#FFFFFF" filter="url(#gcS)"></rect>
+    <path d="M356 276 H668 A56 56 0 0 1 724 332 V396 H300 V332 A56 56 0 0 1 356 276 Z" fill="#F0507F"></path>
+    <g fill="#FFFFFF" filter="url(#gcS2)">
+      <rect x="392" y="236" width="40" height="84" rx="20"></rect>
+      <rect x="592" y="236" width="40" height="84" rx="20"></rect>
+    </g>
+    <rect x="392" y="586" width="240" height="104" rx="26" fill="#F7A9C2"></rect>
+    <rect x="500" y="512" width="24" height="76" rx="8" fill="#F7A9C2"></rect>
+    <path d="M392 612 V606 Q392 586 418 586 H606 Q632 586 632 606 V612 Q612 640 592 612 Q572 640 552 612 Q532 640 512 612 Q492 640 472 612 Q452 640 432 612 Q412 640 392 612 Z" fill="#E5336E"></path>
+    <path d="M512 452 C498 472 496 490 512 500 C528 490 526 472 512 452 Z" fill="#FFB23E"></path>
+  </svg>

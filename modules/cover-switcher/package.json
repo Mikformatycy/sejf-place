@@ -1,0 +1,9 @@
+{
+  "name": "cover-switcher",
+  "version": "1.0.0",
+  "description": "Switches the launcher icon (and label on Android) between the app's covers.",
+  "main": "index.ts",
+  "license": "MIT",
+  "author": "Przybornik",
+  "homepage": "https://example.invalid"
+}

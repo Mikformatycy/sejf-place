@@ -1,0 +1,31 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-label="Ikona Lista zadań">
+    <defs>
+      <linearGradient id="gzG" x1="0" y1="0" x2="0.35" y2="1">
+        <stop offset="0" stop-color="#6E7DF5"></stop>
+        <stop offset="1" stop-color="#27308F"></stop>
+      </linearGradient>
+      <filter id="gzS" x="-25%" y="-25%" width="150%" height="160%">
+        <feDropShadow dx="0" dy="20" stdDeviation="24" flood-color="#0E1240" flood-opacity="0.32"></feDropShadow>
+      </filter>
+    </defs>
+    <rect width="1024" height="1024" fill="url(#gzG)"></rect>
+    <g transform="translate(0 16)">
+      <g fill="#FFFFFF" filter="url(#gzS)">
+        <rect x="336" y="256" width="352" height="516" rx="48"></rect>
+        <rect x="452" y="208" width="120" height="84" rx="32"></rect>
+      </g>
+      <circle cx="512" cy="244" r="16" fill="#5866E0"></circle>
+      <rect x="384" y="348" width="64" height="64" rx="16" fill="#3442B8"></rect>
+      <rect x="476" y="368" width="164" height="24" rx="12" fill="#C9CFFF"></rect>
+      <rect x="384" y="448" width="64" height="64" rx="16" fill="#3442B8"></rect>
+      <rect x="476" y="468" width="132" height="24" rx="12" fill="#C9CFFF"></rect>
+      <rect x="388.5" y="552.5" width="55" height="55" rx="13" fill="none" stroke="#3442B8" stroke-width="9"></rect>
+      <rect x="476" y="568" width="164" height="24" rx="12" fill="#C9CFFF"></rect>
+      <rect x="388.5" y="652.5" width="55" height="55" rx="13" fill="none" stroke="#3442B8" stroke-width="9"></rect>
+      <rect x="476" y="668" width="110" height="24" rx="12" fill="#C9CFFF"></rect>
+      <g fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M400 380 L413 393 L434 368"></path>
+        <path d="M400 480 L413 493 L434 468"></path>
+      </g>
+    </g>
+  </svg>

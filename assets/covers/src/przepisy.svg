@@ -1,0 +1,23 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-label="Ikona Przepisy: czapka kucharza">
+    <defs>
+      <linearGradient id="gpG" x1="0" y1="0" x2="0.35" y2="1">
+        <stop offset="0" stop-color="#FFA552"></stop>
+        <stop offset="1" stop-color="#EE4B2B"></stop>
+      </linearGradient>
+      <filter id="gpS" x="-25%" y="-25%" width="150%" height="160%">
+        <feDropShadow dx="0" dy="20" stdDeviation="24" flood-color="#8C1F0B" flood-opacity="0.32"></feDropShadow>
+      </filter>
+    </defs>
+    <rect width="1024" height="1024" fill="url(#gpG)"></rect>
+    <g filter="url(#gpS)" transform="translate(0 16)">
+      <circle cx="372" cy="452" r="140" fill="#FFFFFF"></circle>
+      <circle cx="652" cy="452" r="140" fill="#FFFFFF"></circle>
+      <circle cx="512" cy="382" r="172" fill="#FFFFFF"></circle>
+      <path d="M322 470 L350 612 H674 L702 470 Z" fill="#FFFFFF"></path>
+      <rect x="344" y="638" width="336" height="132" rx="30" fill="#FFFFFF"></rect>
+    </g>
+    <g transform="translate(0 16)" fill="none" stroke="#F9D3C3" stroke-width="20" stroke-linecap="round">
+      <path d="M452 522 V588"></path>
+      <path d="M572 522 V588"></path>
+    </g>
+  </svg>

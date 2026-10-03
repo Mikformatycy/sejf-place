@@ -1,0 +1,31 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-label="Ikona Czytelniczka: otwarta książka i pasek postępu czytania">
+    <defs>
+      <linearGradient id="grG" x1="0" y1="0" x2="0.35" y2="1">
+        <stop offset="0" stop-color="#B18CFF"></stop>
+        <stop offset="1" stop-color="#6A3FE0"></stop>
+      </linearGradient>
+      <filter id="grS" x="-25%" y="-25%" width="150%" height="160%">
+        <feDropShadow dx="0" dy="20" stdDeviation="24" flood-color="#2E1380" flood-opacity="0.32"></feDropShadow>
+      </filter>
+    </defs>
+    <rect width="1024" height="1024" fill="url(#grG)"></rect>
+    <g fill="#FFFFFF" filter="url(#grS)">
+      <path d="M512 330 C460 296 380 290 300 306 V590 C380 574 460 580 512 614 Z"></path>
+      <path d="M512 330 C564 296 644 290 724 306 V590 C644 574 564 580 512 614 Z"></path>
+    </g>
+    <g fill="none" stroke="#DCCBFF" stroke-linecap="round">
+      <path d="M512 338 V604" stroke-width="8"></path>
+      <g stroke-width="14">
+        <path d="M346 384 C392 374 436 376 474 390"></path>
+        <path d="M346 436 C392 426 436 428 474 442"></path>
+        <path d="M346 488 C392 478 436 480 474 494"></path>
+        <path d="M346 540 C380 532 410 532 436 538"></path>
+        <path d="M550 390 C588 376 632 374 678 384"></path>
+        <path d="M550 442 C588 428 632 426 678 436"></path>
+        <path d="M550 494 C588 480 632 478 678 488"></path>
+      </g>
+    </g>
+    <path d="M626 300 H662 V398 L644 382 L626 398 Z" fill="#7B4FEA"></path>
+    <rect x="332" y="690" width="360" height="40" rx="20" fill="#FFFFFF" fill-opacity="0.3"></rect>
+    <rect x="332" y="690" width="244" height="40" rx="20" fill="#FFFFFF" filter="url(#grS)"></rect>
+  </svg>

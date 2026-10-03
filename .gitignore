@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native builds
+android/build/
+android/app/build/
+android/.gradle/
+android/local.properties
+android/app/release/
+ios/
+*.apk
+*.aab
+*.ipa
+
+# Secrets / env
+.env
+.env*.local
+*.jks
+*.keystore
+!debug.keystore
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+
+# Logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.log
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Misc
+coverage/
+*.tsbuildinfo
+.metro-health-check*
+
+# Local tooling
+.claude/
+android/app/.cxx/
+.gradle/
+**/android/build/
+**/android/.gradle/

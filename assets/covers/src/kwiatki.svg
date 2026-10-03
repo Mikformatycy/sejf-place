@@ -1,0 +1,31 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-label="Ikona Podlewanie kwiatków: konewka i roślinka w doniczce">
+    <defs>
+      <linearGradient id="gfG" x1="0" y1="0" x2="0.35" y2="1">
+        <stop offset="0" stop-color="#6FE09A"></stop>
+        <stop offset="1" stop-color="#1FA45F"></stop>
+      </linearGradient>
+      <filter id="gfS" x="-25%" y="-25%" width="150%" height="160%">
+        <feDropShadow dx="0" dy="20" stdDeviation="24" flood-color="#0B5A2F" flood-opacity="0.32"></feDropShadow>
+      </filter>
+    </defs>
+    <rect width="1024" height="1024" fill="url(#gfG)"></rect>
+    <g transform="translate(0 -16)">
+      <g filter="url(#gfS)">
+        <path d="M300 430 C300 330 460 330 460 430" fill="none" stroke="#FFFFFF" stroke-width="34" stroke-linecap="round"></path>
+        <path d="M490 476 L640 360" fill="none" stroke="#FFFFFF" stroke-width="34" stroke-linecap="round"></path>
+        <path d="M682 592 V536" fill="none" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round"></path>
+        <path d="M262 430 H502 L488 640 Q484 666 458 666 H306 Q280 666 276 640 Z" fill="#FFFFFF"></path>
+        <ellipse cx="0" cy="0" rx="24" ry="48" transform="translate(664 342) rotate(-36)" fill="#FFFFFF"></ellipse>
+        <rect x="596" y="590" width="172" height="28" rx="12" fill="#FFFFFF"></rect>
+        <path d="M610 626 H754 L742 700 Q739 718 721 718 H643 Q625 718 622 700 Z" fill="#FFFFFF"></path>
+        <path d="M682 540 C650 540 628 518 626 488 C656 488 680 508 682 540 Z" fill="#FFFFFF"></path>
+        <path d="M682 530 C700 500 728 486 756 492 C752 522 720 540 682 530 Z" fill="#FFFFFF"></path>
+      </g>
+      <path d="M282 520 H484" fill="none" stroke="#BDEBCF" stroke-width="14" stroke-linecap="round"></path>
+      <g fill="#DFF6FF">
+        <path d="M0 -18 C0 -18 -11 -3 -11 5 A11 11 0 0 0 11 5 C11 -3 0 -18 0 -18 Z" transform="translate(686 414)"></path>
+        <path d="M0 -18 C0 -18 -11 -3 -11 5 A11 11 0 0 0 11 5 C11 -3 0 -18 0 -18 Z" transform="translate(724 424)"></path>
+        <path d="M0 -18 C0 -18 -11 -3 -11 5 A11 11 0 0 0 11 5 C11 -3 0 -18 0 -18 Z" transform="translate(704 462)"></path>
+      </g>
+    </g>
+  </svg>
