@@ -14,6 +14,8 @@ import type { Assessment } from '@/legal/assessment';
 import { moneyAmounts, tagText } from '@/content/pieniadze';
 import { fileExt, formatBytes, formatInstant, formatOccurred, formatSeconds, shortHash } from '@/ui/format';
 import { formColor } from '@/ui/formColors';
+import { BAR_H, BarShell } from '@/ui/BottomBar';
+import { LegalHints } from '@/ui/LegalHints';
 import { SeverityCard } from '@/ui/SeverityCard';
 import { C, Icon, Notice, P, VaultScreen, type HeaderAction, type IconName } from '@/ui/kit';
 import { themed } from '@/ui/theme';
@@ -32,6 +34,10 @@ export default function EntryDetail() {
   const [assessment, setAssessment] = useState<Assessment | null | undefined>(undefined);
   const [assessing, setAssessing] = useState(false);
   const [assessError, setAssessError] = useState<string | null>(null);
+  const [showLaw, setShowLaw] = useState(false);
+  const [showAi, setShowAi] = useState(false);
+  // Bumped when something opens at the bottom, so the screen scrolls down to it.
+  const [reveal, setReveal] = useState(0);
   const [tidying, setTidying] = useState(false);
 
   if (!index || !entry) {
@@ -63,6 +69,22 @@ export default function EntryDetail() {
       },
     ]);
 
+  const toggleLaw = () => {
+    if (!showLaw) setReveal((n) => n + 1);
+    setShowLaw(!showLaw);
+  };
+
+  // First tap asks the AI; later taps only show or hide the answer it gave.
+  const toggleAi = () => {
+    if (showAi && !assessing) {
+      setShowAi(false);
+      return;
+    }
+    setShowAi(true);
+    setReveal((n) => n + 1);
+    if (assessment === undefined && !assessing) void assess();
+  };
+
   const assess = async () => {
     if (!aiReady) {
       router.push('/sejf/ustawienia');
@@ -74,6 +96,7 @@ export default function EntryDetail() {
     const release = holdOpen();
     try {
       setAssessment(await assessEntry(index, entry.id));
+      setReveal((n) => n + 1);
     } catch (e) {
       setAssessError(e instanceof AiError ? e.message : 'Coś poszło nie tak.');
     } finally {
@@ -123,16 +146,10 @@ export default function EntryDetail() {
   // The bar sits low and the round "głos rozsądku" rises above it; everything stays inside the
   // footer's own box, so nothing is clipped and the whole circle can be tapped.
   const footer = c ? (
-    <View>
-      <View style={st.tools}>
-        <Tool icon="scale-outline" label="Prawo" onPress={() => router.push({ pathname: '/sejf/prawo', params: { id: entry.id } })} />
-        <View style={{ width: REASON_W }} />
-        <Tool icon="color-wand-outline" label="Uporządkuj" ai busy={tidying} onPress={tidy} />
-      </View>
-      <View style={st.reasonWrap} pointerEvents="box-none">
-        <ReasonButton busy={assessing} onPress={assess} />
-      </View>
-    </View>
+    <BarShell center={<ReasonButton busy={assessing} onPress={toggleAi} />} centerTop={BAR_H / 2 - REASON_CY} centerWidth={REASON_W}>
+      <Tool icon="scale-outline" label="Prawo" active={showLaw} onPress={toggleLaw} />
+      <Tool icon="color-wand-outline" label="Uporządkuj" ai busy={tidying} onPress={tidy} />
+    </BarShell>
   ) : undefined;
 
   const added = versions[0];
@@ -142,10 +159,7 @@ export default function EntryDetail() {
   const addedLater = !addedOccurred || Math.abs(Date.parse(added.createdAt) - new Date(addedOccurred).getTime()) > 30 * 60_000;
 
   return (
-    <VaultScreen title={c ? '' : 'Usunięty wpis'} actions={actions} footer={footer} bareFooter>
-      {assessment ? <SeverityCard a={assessment} /> : null}
-      {assessment === null ? <P muted>Model nie rozpoznał tu przemocy.</P> : null}
-      {assessError ? <Text style={st.error}>{assessError}</Text> : null}
+    <VaultScreen title={c ? '' : 'Usunięty wpis'} actions={actions} footer={footer} bareFooter tabbed scrollToEnd={reveal}>
 
       {c ? (
         <>
@@ -244,6 +258,27 @@ export default function EntryDetail() {
           ))}
         </View>
       ) : null}
+      {/* Answers open here, under the timestamp; the same button closes them again. */}
+      {showLaw && c ? (
+        <View style={[st.panel, st.lawPanel]} accessibilityLabel="Co mówi prawo">
+          <View style={st.panelHead}>
+            <Icon name="scale-outline" size={20} color={C.primary} />
+          </View>
+          <LegalHints entryId={entry.id} />
+        </View>
+      ) : null}
+      {showAi && c ? (
+        <View style={[st.panel, st.aiPanel]} accessibilityLabel="Głos rozsądku">
+          <View style={st.panelHead}>
+            <Icon name="sparkles" size={20} color={C.ai} />
+            {assessing ? <ActivityIndicator color={C.ai} /> : null}
+          </View>
+          {assessment ? <SeverityCard a={assessment} /> : null}
+          {assessment === null ? <P muted>Model nie rozpoznał tu przemocy.</P> : null}
+          {assessError ? <Text style={st.error}>{assessError}</Text> : null}
+        </View>
+      ) : null}
+      <View style={{ height: REASON_CY - BAR_H / 2 + 4 }} />
     </VaultScreen>
   );
 }
@@ -257,7 +292,7 @@ function shortStamp(iso: string): string {
 }
 
 /** Bottom-bar tool: icon above a short label; AI tools in their own colour. */
-function Tool({ icon, label, onPress, ai, busy, iconOnly }: { icon: IconName; label: string; onPress: () => void; ai?: boolean; busy?: boolean; iconOnly?: boolean }) {
+function Tool({ icon, label, onPress, ai, busy, iconOnly, active }: { icon: IconName; label: string; onPress: () => void; ai?: boolean; busy?: boolean; iconOnly?: boolean; active?: boolean }) {
   const color = ai ? C.ai : C.primary;
   return (
     <Pressable
@@ -267,7 +302,9 @@ function Tool({ icon, label, onPress, ai, busy, iconOnly }: { icon: IconName; la
       disabled={busy}
       style={({ pressed }) => [st.tool, pressed && { backgroundColor: C.bg }]}
     >
-      {busy ? <ActivityIndicator color={color} /> : <Icon name={icon} size={iconOnly ? 26 : 22} color={color} />}
+      <View style={[st.toolPill, active && { backgroundColor: ai ? C.aiSoft : C.primarySoft }]}>
+        {busy ? <ActivityIndicator color={color} /> : <Icon name={icon} size={iconOnly ? 26 : 22} color={color} />}
+      </View>
       {iconOnly ? null : <Text style={[st.toolText, { color }]}>{label}</Text>}
     </Pressable>
   );
@@ -276,16 +313,15 @@ function Tool({ icon, label, onPress, ai, busy, iconOnly }: { icon: IconName; la
 const REASON = 'GŁOS ROZSĄDKU';
 const REASON_D = 80; // diameter of the button
 const REASON_W = 140; // box around it, with room for the lettering
-const REASON_H = 116;
 const REASON_CX = REASON_W / 2;
-const REASON_CY = 68; // the lettering needs ~ARC_R + 8 above the centre
-const BAR_H = 60; // height of the tool bar the button sits on
-const ARC_R = 58; // radius of the lettering around the button
+const ARC_R = 54; // radius of the lettering, over the button
+const REASON_CY = ARC_R + 12; // room for the lettering above the circle
+const REASON_H = REASON_CY + REASON_D / 2 + 2;
 const ARC_SPAN = 140; // degrees the lettering covers, centred on the top
 
 /**
  * The AI's opinion of the entry: a big round button that rises above the bar, with
- * "głos rozsądku" written along its rim (each letter placed and turned on the arc).
+ * "głos rozsądku" written along the bottom of its rim (each letter placed and turned on the arc).
  * It squashes a little when pressed and sends out a soft pulse while the AI thinks.
  */
 function ReasonButton({ busy, onPress }: { busy: boolean; onPress: () => void }) {
@@ -310,6 +346,7 @@ function ReasonButton({ busy, onPress }: { busy: boolean; onPress: () => void })
   return (
     <View style={st.reason}>
       {chars.map((ch, i) => {
+        // Along the top of the circle, left to right, each letter tilted to follow the curve.
         const deg = -ARC_SPAN / 2 + i * step;
         const rad = (deg * Math.PI) / 180;
         return (
@@ -516,14 +553,11 @@ const st = themed(() => StyleSheet.create({
   historyText: { fontSize: 13, color: C.muted },
   details: { paddingLeft: 22, paddingBottom: 8 },
   version: { paddingVertical: 4 },
-  // The bar is centred on the button: its middle line runs through the circle's centre.
-  tools: { flexDirection: 'row', alignItems: 'center', marginTop: REASON_CY - BAR_H / 2, height: BAR_H, marginBottom: REASON_H - REASON_CY - BAR_H / 2, backgroundColor: C.surface, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.border },
-  reasonWrap: { position: 'absolute', top: 0, left: 0, right: 0, alignItems: 'center' },
   reason: { width: REASON_W, height: REASON_H },
   arcChar: { position: 'absolute', width: 14, textAlign: 'center', fontSize: 11, fontWeight: '700', color: C.ai },
   reasonCircle: { position: 'absolute', top: REASON_CY - REASON_D / 2, left: REASON_CX - REASON_D / 2, width: REASON_D, height: REASON_D, borderRadius: REASON_D / 2 },
   reasonHalo: { backgroundColor: C.ai },
-  reasonBtn: { flex: 1, borderRadius: REASON_D / 2, backgroundColor: C.ai, alignItems: 'center', justifyContent: 'center', borderWidth: 4, borderColor: C.surface, elevation: 5, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 7, shadowOffset: { width: 0, height: 3 } },
+  reasonBtn: { flex: 1, borderRadius: REASON_D / 2, backgroundColor: C.ai, alignItems: 'center', justifyContent: 'center', borderWidth: 4, borderColor: C.aiSoft, elevation: 5, shadowColor: C.ai, shadowOpacity: 0.35, shadowRadius: 8, shadowOffset: { width: 0, height: 3 } },
   tool: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, paddingVertical: 8, borderRadius: 8 },
   toolText: { fontSize: 12, fontWeight: '600' },
   media: { marginTop: 4, marginBottom: 8 },
@@ -536,6 +570,12 @@ const st = themed(() => StyleSheet.create({
   play: { width: 40, height: 40, borderRadius: 20, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center' },
   audioTime: { fontSize: 15, fontWeight: '600', color: C.text },
   viewer: { flex: 1, backgroundColor: '#000' },
+  panel: { marginTop: 12, gap: 8 },
+  // Each answer in its own colour: the law in the app's blue, the AI in violet.
+  lawPanel: { backgroundColor: C.primarySoft, borderRadius: 12, padding: 12 },
+  aiPanel: { backgroundColor: C.aiSoft, borderRadius: 12, padding: 12 },
+  panelHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  toolPill: { width: 56, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   error: { fontSize: 14, color: C.danger, marginBottom: 8 },
   hash: { fontFamily: 'monospace', fontSize: 12, color: C.muted, marginTop: 6 },
 }));

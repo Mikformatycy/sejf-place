@@ -7,9 +7,10 @@ import { amountTotal, formatAmount, moneyAmounts } from '@/content/pieniadze';
 import { fileExt, formatOccurred, formatSeconds } from '@/ui/format';
 import { C, Icon, IconBtn, P, VaultScreen } from '@/ui/kit';
 import { formColor } from '@/ui/formColors';
+import { CaptureButtons } from '@/ui/CaptureButtons';
 import { themed } from '@/ui/theme';
 import { stampNow } from '@/vault/actions';
-import { recordingDurationMs, thumbnailUri, useDraft } from '@/vault/evidence';
+import { recordingDurationMs, thumbnailUri } from '@/vault/evidence';
 import { useSession } from '@/vault/session';
 import type { Attachment, Entry, ReportStamp } from '@/vault/types';
 
@@ -32,7 +33,6 @@ function entriesWithoutBackup(entries: Entry[], reports: ReportStamp[]): number 
 export default function Timeline() {
   const entries = useSession((s) => s.index?.entries) ?? NO_ENTRIES;
   const reports = useSession((s) => s.index?.reports) ?? NO_REPORTS;
-  const hasDraft = useDraft((d) => d.key === 'new' && (d.attachments.length > 0 || !!d.fields?.description));
   const [busy, setBusy] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
 
@@ -64,38 +64,8 @@ export default function Timeline() {
       title="sejf-place"
       brand
       back={false}
-      actions={[
-        { icon: 'share-outline', label: 'Eksport', onPress: () => router.push('/sejf/raport') },
-        { icon: 'call-outline', label: 'Telefony pomocowe', onPress: () => router.push('/sejf/telefony') },
-        { icon: 'help-circle-outline', label: 'Pomoc', onPress: () => router.push('/sejf/pomoc') },
-        { icon: 'settings-outline', label: 'Ustawienia', onPress: () => router.push('/sejf/ustawienia') },
-      ]}
-      overlay={
-        <>
-          {/* Straight to the camera or recorder; the form opens afterwards with the file attached. */}
-          <View style={st.fabs}>
-            <IconBtn
-              icon="mic-outline"
-              label="Nagranie"
-              size={52}
-              color={C.primary}
-              bg={C.surface}
-              raised
-              onPress={() => router.push({ pathname: '/sejf/nagranie', params: { quick: '1' } })}
-            />
-            <IconBtn
-              icon="camera-outline"
-              label="Zdjęcie"
-              size={52}
-              color={C.primary}
-              bg={C.surface}
-              raised
-              onPress={() => router.push({ pathname: '/sejf/aparat', params: { quick: '1' } })}
-            />
-            <IconBtn icon="add" label={hasDraft ? 'Dokończ wpis' : 'Nowy wpis'} size={64} color="#fff" bg={C.add} raised onPress={() => router.push('/sejf/nowy')} />
-          </View>
-        </>
-      }
+      tabbed
+      overlay={<CaptureButtons />}
     >
 
       {pending > 0 && (
@@ -114,7 +84,14 @@ export default function Timeline() {
         </View>
       )}
 
-      <Text style={st.listLabel}>Wpisy ({sorted.length})</Text>
+      <View style={st.listHead}>
+        <Text style={st.listLabel}>Wpisy ({sorted.length})</Text>
+        {/* Export sits with the list it exports. */}
+        {/* Nudged up so the icon lines up with the capital letters of the label. */}
+        <View style={{ marginTop: -5 }}>
+          <IconBtn icon="share-outline" label="Eksport" size={34} color={C.primary} onPress={() => router.push('/sejf/raport')} />
+        </View>
+      </View>
       {sorted.length === 0 ? (
         <View style={st.empty}>
           <Icon name="folder-open-outline" size={48} color={C.border} />
@@ -241,11 +218,11 @@ const st = themed(() => StyleSheet.create({
     marginBottom: 6,
   },
   // Same look as the other section headers, but closer to the top so the entries start higher.
-  listLabel: { fontSize: 13, fontWeight: '700', color: C.muted, textTransform: 'uppercase', letterSpacing: 0.4, marginTop: 2, marginBottom: 8 },
+  listHead: { flexDirection: 'row', alignItems: 'center', gap: 2, marginTop: -4, marginBottom: 4 },
+  listLabel: { fontSize: 13, fontWeight: '700', color: C.muted, textTransform: 'uppercase', letterSpacing: 0.4 },
   empty: { alignItems: 'center', paddingVertical: 40, gap: 8 },
   emptyText: { color: C.muted, fontSize: 15 },
   pendingText: { flex: 1, color: C.warn, fontSize: 14, marginLeft: 8 },
-  fabs: { position: 'absolute', right: 16, bottom: 20, flexDirection: 'row', alignItems: 'center', gap: 12 },
   // Each entry is its own card, with some air between them.
   entry: { backgroundColor: C.surface, borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: C.border, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 12 },
   head: { flexDirection: 'row', alignItems: 'center' },

@@ -1,16 +1,20 @@
 import { Redirect, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 
 import { C } from '@/ui/kit';
 import { applyTheme } from '@/ui/theme';
+import { UnlockIntro } from '@/ui/UnlockIntro';
 import { stampNow } from '@/vault/actions';
 import { useVaultGuards } from '@/vault/quickExit';
 import { useSession } from '@/vault/session';
 
 export default function VaultLayout() {
   const unlocked = useSession((s) => s.unlocked);
+  // This layout mounts once per opening of the vault, so the intro plays once after the key.
+  const [intro, setIntro] = useState(true);
+  const endIntro = useCallback(() => setIntro(false), []);
   const settings = useSession((s) => s.index?.settings);
   const { touch } = useVaultGuards({
     shakeToExit: settings?.shakeToExit ?? true,
@@ -41,7 +45,8 @@ export default function VaultLayout() {
     <View style={{ flex: 1 }} onTouchStart={touch}>
       <StatusBar style={dark ? 'light' : 'dark'} />
       {/* A new key re-creates the screens with the other colours. */}
-      <Stack key={dark ? 'dark' : 'light'} screenOptions={{ headerShown: false, animation: 'slide_from_right', contentStyle: { backgroundColor: C.bg } }} />
+      <Stack key={dark ? 'dark' : 'light'} screenOptions={{ headerShown: false, animation: 'fade', contentStyle: { backgroundColor: C.bg } }} />
+      {intro ? <UnlockIntro onDone={endIntro} /> : null}
     </View>
   );
 }

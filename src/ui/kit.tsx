@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
-import { useRef, useState, type ComponentProps, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ComponentProps, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Modal,
@@ -126,7 +126,7 @@ export function Slider({
 
 // Eight small offsets around the letters; drawn behind a copy filled with the background.
 // 1.5 pt, the stroke of the outline icons next to it in the header.
-const OUTLINE = [
+export const OUTLINE = [
   [-1.06, -1.06],
   [1.06, -1.06],
   [-1.06, 1.06],
@@ -137,17 +137,22 @@ const OUTLINE = [
   [1.5, 0],
 ];
 
+/** The logotype's letters: Lexend SemiBold, spaced out. */
+export const logoText = (size: number) => ({ fontSize: size, fontFamily: 'Lexend_600SemiBold', letterSpacing: size * 0.14 });
+
 /** Hollow lettering (only the outline) in Lexend, for the app's name. Plain Text views, no images. */
 export function OutlineText({ text, size = 22, color = C.primary, fill = C.surface }: { text: string; size?: number; color?: string; fill?: string }) {
-  const base = { fontSize: size, fontFamily: 'Lexend_600SemiBold', letterSpacing: size * 0.14 };
+  const base = logoText(size);
   return (
     <View accessible accessibilityRole="header" accessibilityLabel={text}>
       {OUTLINE.map(([x, y], i) => (
-        <Text key={i} importantForAccessibility="no" style={[base, { position: 'absolute', left: x, top: y, color }]}>
+        <Text key={i} importantForAccessibility="no" numberOfLines={1} style={[base, { position: 'absolute', left: x, top: y, color }]}>
           {text}
         </Text>
       ))}
-      <Text style={[base, { color: fill }]}>{text}</Text>
+      <Text numberOfLines={1} style={[base, { color: fill }]}>
+        {text}
+      </Text>
     </View>
   );
 }
@@ -184,12 +189,18 @@ export function VaultScreen({
   overlay,
   brand,
   bareFooter,
+  tabbed,
+  scrollToEnd,
 }: {
   title: string;
   /** Show the title as the app's hollow logotype (main screen only). */
   brand?: boolean;
   /** The footer draws its own bar (e.g. with a button rising above it). */
   bareFooter?: boolean;
+  /** A tab of the bottom bar: the bar owns the bottom edge, so no extra space is kept below the content. */
+  tabbed?: boolean;
+  /** Changing this value scrolls to the end (e.g. after something opened at the bottom). */
+  scrollToEnd?: number;
   back?: boolean;
   children: ReactNode;
   scroll?: boolean;
@@ -197,13 +208,22 @@ export function VaultScreen({
   actions?: HeaderAction[];
   overlay?: ReactNode;
 }) {
+  const scroller = useRef<ScrollView>(null);
+  useEffect(() => {
+    if (!scrollToEnd) return;
+    // After the new content has been laid out.
+    const timer = setTimeout(() => scroller.current?.scrollToEnd({ animated: true }), 80);
+    return () => clearTimeout(timer);
+  }, [scrollToEnd]);
+
   return (
-    <SafeAreaView style={s.screen} edges={['top', 'bottom']}>
+    <SafeAreaView style={s.screen} edges={tabbed ? ['top'] : ['top', 'bottom']}>
       <View style={s.header}>
         {back ? <IconBtn icon="chevron-back" label="Wstecz" onPress={() => router.back()} color={C.primary} /> : null}
         {brand ? (
           <View style={{ flex: 1, marginLeft: 10 }}>
-            <OutlineText text={title} />
+            {/* Only the quick exit shares the bar, so the name can be large and still fit on one line. */}
+            <OutlineText text={title} size={24} />
           </View>
         ) : (
           <Text style={[s.title, !back && { marginLeft: 8 }]} numberOfLines={1}>
@@ -213,11 +233,11 @@ export function VaultScreen({
         {actions.map((a) => (
           <IconBtn key={a.label} icon={a.icon} label={a.label} onPress={a.onPress} color={C.muted} />
         ))}
-        <IconBtn icon="close" label="Szybkie wyjście" onPress={quickExit} color={C.accent} bg={C.accentSoft} />
+        <IconBtn icon="close" label="Szybkie wyjście" onPress={quickExit} color={C.danger} size={44} />
       </View>
       <View style={{ flex: 1 }}>
         {scroll ? (
-          <ScrollView contentContainerStyle={[s.content, overlay ? { paddingBottom: 110 } : null]} keyboardShouldPersistTaps="handled">
+          <ScrollView ref={scroller} contentContainerStyle={[s.content, tabbed ? { paddingBottom: 20 } : overlay ? { paddingBottom: 110 } : null]} keyboardShouldPersistTaps="handled">
             {children}
           </ScrollView>
         ) : (

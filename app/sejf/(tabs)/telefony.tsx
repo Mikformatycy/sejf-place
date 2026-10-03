@@ -1,12 +1,13 @@
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { CONTACTS } from '@/content/pomoc';
+import { CaptureButtons } from '@/ui/CaptureButtons';
 import { C, Icon, VaultScreen } from '@/ui/kit';
 import { themed } from '@/ui/theme';
 
 export default function Phones() {
   return (
-    <VaultScreen title="Telefony">
+    <VaultScreen title="Telefony" back={false} tabbed overlay={<CaptureButtons />}>
       {CONTACTS.map((c) => {
         const urgent = c.dial === '112';
         return (

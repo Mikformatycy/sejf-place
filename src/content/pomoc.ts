@@ -200,4 +200,18 @@ export const ARTICLES: Article[] = [
     ],
     sources: ['ai.google.dev/gemini-api/terms'],
   },
+  {
+    slug: 'podpowiedzi-prawne',
+    title: 'Skąd są podpowiedzi „Co mówi prawo”?',
+    body: [
+      'To nie jest porada prawna. Aplikacja porównuje Twój opis z listą sprawdzonych przepisów i pokazuje te, które mogą mieć związek ze zdarzeniem. Czy przepis ma zastosowanie, ocenia policja, prokurator albo sąd.',
+      'Podpowiedzi działają bez internetu: nic nie jest wysyłane, a opis nie trafia do AI.',
+      'Lista może być niepełna. Brak podpowiedzi nie znaczy, że to, co się stało, jest w porządku.',
+      'Gdzie zapytać prawnika za darmo:',
+      '• Centrum Praw Kobiet: 800 107 777 (telefon interwencyjny).',
+      '• Punkty nieodpłatnej pomocy prawnej działają w każdym powiecie; zapisy przez urząd lub stronę np.ms.gov.pl.',
+      'W zagrożeniu dzwoń pod 112.',
+    ],
+    sources: ['Kodeks karny', 'ustawa o przeciwdziałaniu przemocy domowej', 'ustawa o nieodpłatnej pomocy prawnej'],
+  },
 ];

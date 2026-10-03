@@ -2,12 +2,12 @@ import { router } from 'expo-router';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Alert, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { coverSwitcherAvailable } from '../../modules/cover-switcher';
+import { coverSwitcherAvailable } from '../../../modules/cover-switcher';
 
 import { useLatest } from '@/covers/ui/shared';
 import { aiReady } from '@/ai/config';
 import { ActionPicker, CoverPicker, KEY_IOS_NOTE } from '@/screens/CoverPicker';
-import { Btn, C, H2, Icon, Info, List, Slider, Toggle, VaultScreen, type IconName } from '@/ui/kit';
+import { Btn, C, H2, Icon, Info, List, Toggle, VaultScreen, type IconName } from '@/ui/kit';
 import { themed } from '@/ui/theme';
 import { wipeEverything } from '@/vault/actions';
 import { markActivity } from '@/vault/quickExit';
@@ -31,6 +31,7 @@ function SettingsForm({ index }: { index: VaultIndex }) {
   const [profile, setProfile] = useState<Profile>(index.profile);
   const [settings, setSettings] = useState<VaultSettings>(index.settings);
   const [keyOpen, setKeyOpen] = useState(false);
+  const [lockText, setLockText] = useState(String(index.settings.autoLockMinutes));
 
   const stored = useSession((st) => st.index);
   const dirty = JSON.stringify([profile, settings]) !== JSON.stringify([stored?.profile, stored?.settings]);
@@ -99,7 +100,7 @@ function SettingsForm({ index }: { index: VaultIndex }) {
     ]);
 
   return (
-    <VaultScreen title="Ustawienia">
+    <VaultScreen title="Ustawienia" back={false} tabbed>
       <H2 info={`Wybranie innej przykrywki ustawia nowy klucz. ${ICON_NOTE}`}>Przykrywka</H2>
       <CoverPicker current={coverId} onPick={(id) => router.push({ pathname: '/sejf/klucz/czynnosc', params: { cover: id } })} />
 
@@ -131,17 +132,24 @@ function SettingsForm({ index }: { index: VaultIndex }) {
           <Toggle value={settings.shakeToExit} onChange={(v) => setSettings({ ...settings, shakeToExit: v })} label="Wyjście potrząśnięciem" />
         </SettingRow>
         <SettingRow icon="lock-closed-outline" label="Blokada po bezczynności" last>
-          <Text style={st.value}>{settings.autoLockMinutes} min</Text>
-        </SettingRow>
-        <View style={st.slider}>
-          <Slider
-            label="Zamknij po bezczynności, minuty"
-            value={settings.autoLockMinutes}
-            min={1}
-            max={15}
-            onChange={(m) => setSettings({ ...settings, autoLockMinutes: m })}
+          {/* Typed minutes (1–60); an empty or odd value falls back to the last good one on leaving the field. */}
+          <TextInput
+            style={st.minutes}
+            keyboardType="number-pad"
+            maxLength={2}
+            value={lockText}
+            onChangeText={(v) => {
+              markActivity();
+              const digits = v.replace(/\D/g, '');
+              setLockText(digits);
+              const n = Number(digits);
+              if (n >= 1 && n <= 60) setSettings({ ...settings, autoLockMinutes: n });
+            }}
+            onBlur={() => setLockText(String(settings.autoLockMinutes))}
+            accessibilityLabel="Blokada po bezczynności, minuty"
           />
-        </View>
+          <Text style={st.value}>min</Text>
+        </SettingRow>
       </List>
 
       <H2>AI</H2>
@@ -194,7 +202,7 @@ const st = themed(() => StyleSheet.create({
   rowIcon: { width: 32, height: 32, borderRadius: 8, backgroundColor: C.primarySoft, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   rowLabel: { flex: 1, fontSize: 16, color: C.text },
   value: { fontSize: 15, fontWeight: '600', color: C.primary },
-  slider: { paddingHorizontal: 8, paddingBottom: 6 },
+  minutes: { minWidth: 44, textAlign: 'center', fontSize: 16, fontWeight: '600', color: C.primary, backgroundColor: C.bg, borderRadius: 8, paddingVertical: 6, marginRight: 6 },
   names: { marginHorizontal: 14, marginBottom: 12, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, backgroundColor: C.bg, fontSize: 15, color: C.text },
   plainRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, minHeight: 52 },
 }));
