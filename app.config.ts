@@ -7,7 +7,7 @@ const MIC_TEXT = 'Mikrofon służy do nagrywania notatek głosowych w aplikacji.
 const PHOTOS_TEXT = 'Dostęp do zdjęć pozwala dodać wybrane zdjęcie do notatki.';
 
 const config: ExpoConfig = {
-  name: 'Przybornik',
+  name: 'Pocket',
   slug: 'przybornik',
   scheme: 'przybornik',
   version: '1.0.0',

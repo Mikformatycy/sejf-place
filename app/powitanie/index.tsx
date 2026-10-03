@@ -4,7 +4,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { beginFirstRun } from '@/screens/setupFlow';
-import { Btn, C, Icon, P, type IconName } from '@/ui/kit';
+import { Btn, C, Icon, OutlineText, P, type IconName } from '@/ui/kit';
 import { themed } from '@/ui/theme';
 import { keyManager } from '@/vault/session';
 
@@ -15,7 +15,9 @@ export default function Welcome() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
       <ScrollView contentContainerStyle={st.content}>
-        <Text style={st.title}>Teczka</Text>
+        <View style={{ marginBottom: 10 }}>
+          <OutlineText text="sejf-place" size={34} fill={C.bg} />
+        </View>
         <P muted>Dowody ukryte w zwykłej aplikacji.</P>
 
         <View style={st.steps}>

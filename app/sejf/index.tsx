@@ -61,7 +61,8 @@ export default function Timeline() {
 
   return (
     <VaultScreen
-      title="Teczka"
+      title="sejf-place"
+      brand
       back={false}
       actions={[
         { icon: 'share-outline', label: 'Eksport', onPress: () => router.push('/sejf/raport') },

@@ -14,7 +14,7 @@ export interface CoverAction {
 
 export interface CoverInfo {
   id: CoverId;
-  /** Launcher label on Android. On iOS the name is always "Przybornik". */
+  /** Launcher label on Android. On iOS the name is always "Pocket". */
   label: string;
   description: string;
   actions: CoverAction[];

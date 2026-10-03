@@ -124,6 +124,33 @@ export function Slider({
   );
 }
 
+// Eight small offsets around the letters; drawn behind a copy filled with the background.
+const OUTLINE = [
+  [-1.2, -1.2],
+  [1.2, -1.2],
+  [-1.2, 1.2],
+  [1.2, 1.2],
+  [0, -1.5],
+  [0, 1.5],
+  [-1.5, 0],
+  [1.5, 0],
+];
+
+/** Hollow lettering (only the outline), for the app's name. Plain Text views, no images or fonts. */
+export function OutlineText({ text, size = 22, color = C.primary, fill = C.surface }: { text: string; size?: number; color?: string; fill?: string }) {
+  const base = { fontSize: size, fontWeight: '900' as const, letterSpacing: 0.6 };
+  return (
+    <View accessible accessibilityRole="header" accessibilityLabel={text}>
+      {OUTLINE.map(([x, y], i) => (
+        <Text key={i} importantForAccessibility="no" style={[base, { position: 'absolute', left: x, top: y, color }]}>
+          {text}
+        </Text>
+      ))}
+      <Text style={[base, { color: fill }]}>{text}</Text>
+    </View>
+  );
+}
+
 /** Small icon + label pill (status, flags); replaces "Label: value" lines. */
 export function IconChip({ icon, text, color = C.primary, bg = C.primarySoft }: { icon: IconName; text: string; color?: string; bg?: string }) {
   return (
@@ -154,8 +181,11 @@ export function VaultScreen({
   footer,
   actions = [],
   overlay,
+  brand,
 }: {
   title: string;
+  /** Show the title as the app's hollow logotype (main screen only). */
+  brand?: boolean;
   back?: boolean;
   children: ReactNode;
   scroll?: boolean;
@@ -167,9 +197,15 @@ export function VaultScreen({
     <SafeAreaView style={s.screen} edges={['top', 'bottom']}>
       <View style={s.header}>
         {back ? <IconBtn icon="chevron-back" label="Wstecz" onPress={() => router.back()} color={C.primary} /> : null}
-        <Text style={[s.title, !back && { marginLeft: 8 }]} numberOfLines={1}>
-          {title}
-        </Text>
+        {brand ? (
+          <View style={{ flex: 1, marginLeft: 10 }}>
+            <OutlineText text={title} />
+          </View>
+        ) : (
+          <Text style={[s.title, !back && { marginLeft: 8 }]} numberOfLines={1}>
+            {title}
+          </Text>
+        )}
         {actions.map((a) => (
           <IconBtn key={a.label} icon={a.icon} label={a.label} onPress={a.onPress} color={C.muted} />
         ))}

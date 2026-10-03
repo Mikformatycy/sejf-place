@@ -18,7 +18,7 @@ Cele ochrony, w kolejności ważności:
 | # | Zagrożenie | Co robi Teczka | Co zostaje (ryzyko rezydualne) |
 |---|---|---|---|
 | 1 | Przeciwnik otwiera aplikację | Widzi działającą przykrywkę z prawdziwymi danymi (przepisy, zadania, wypita woda). Sejf otwiera tylko czynność-klucz, której nic w interfejsie nie zdradza. | Ktoś znający projekt może podejrzewać aplikację o nietypowej nazwie. |
-| 2 | Lista aplikacji | Android: nazwa i ikona przykrywki w launcherze; w ustawieniach systemowych widnieje „Przybornik” (`pl.przybornik.app`). iOS: zawsze „Przybornik”. | Systemowa lista aplikacji pokazuje nieznaną aplikację. Historia zakupów w sklepie pokaże prawdziwą nazwę, jeśli aplikacja trafi do sklepu. |
+| 2 | Lista aplikacji | Android: nazwa i ikona przykrywki w launcherze; w ustawieniach systemowych widnieje „Pocket” (`pl.przybornik.app`). iOS: zawsze „Pocket”. | Systemowa lista aplikacji pokazuje nieznaną aplikację. Historia zakupów w sklepie pokaże prawdziwą nazwę, jeśli aplikacja trafi do sklepu. |
 | 3 | Zmiana ikony na iOS | Działa przez `setAlternateIconName`. | **iOS zawsze pokazuje systemowy komunikat** o zmianie ikony. Wybór przykrywki najlepiej zrobić raz, w bezpiecznym momencie. |
 | 4 | Galeria | Aparat i mikrofon w Teczce zapisują tylko do zaszyfrowanego magazynu. Po imporcie z galerii aplikacja przypomina o usunięciu oryginału (również z „Ostatnio usuniętych”). | Zrzuty ekranu robione systemowo trafiają do galerii, zanim użytkowniczka je zaimportuje. |
 | 5 | Ostatnie aplikacje i zrzuty ekranu | Android: `FLAG_SECURE` na ekranach sejfu (pusta miniatura, blokada zrzutów). iOS: rozmycie w przełączniku aplikacji. Wyjście do tła zawsze zamyka sejf. | iOS nie blokuje zrzutów ekranu w ogólności. |
