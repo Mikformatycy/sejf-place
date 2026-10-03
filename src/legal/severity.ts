@@ -47,7 +47,6 @@ export function assessSeverity(ctx: HintContext): Severity | null {
   if (has(STRANGLING)) danger.push('duszenie');
   if (has(KILL)) danger.push('groźba śmierci');
   if (has(WEAPON)) danger.push('broń / nóż');
-  if (ctx.profile?.firearm === 'tak') danger.push('broń palna w domu');
   if (e.forms.includes('seksualna')) danger.push('przemoc seksualna');
 
   const serious: string[] = [];
@@ -59,6 +58,8 @@ export function assessSeverity(ctx: HintContext): Severity | null {
   if (e.childrenPresent === true || has(CHILD_WORDS)) serious.push('dzieci przy tym były');
   const similar = ctx.history.filter((h) => h.forms.some((f) => e.forms.includes(f))).length;
   if (similar >= 2 || (e.forms.length > 0 && has(REPEAT))) serious.push('powtarza się');
+  // A gun at home makes threats and physical violence deadly; with insults alone it is not a sign of danger to life.
+  if (ctx.profile?.firearm === 'tak' && (serious.includes('przemoc fizyczna') || serious.includes('groźby'))) danger.push('broń palna w domu');
 
   const concern: string[] = [];
   if (e.forms.includes('psychiczna') || has(PSYCHO)) concern.push('przemoc psychiczna');

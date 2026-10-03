@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { formLabel } from '@/content/formy';
 import { buildReportModel, type ReportModel } from '@/report/model';
 import { sharePackage, sharePdf } from '@/report/export';
-import { Btn, C, Chip, Field, Icon, IconChip, P, VaultScreen, s, type IconName } from '@/ui/kit';
+import { Btn, C, Chip, Field, Icon, P, VaultScreen, s, type IconName } from '@/ui/kit';
 import { themed } from '@/ui/theme';
 import type { Profile } from '@/vault/types';
 import { useSession } from '@/vault/session';
@@ -56,11 +55,6 @@ export default function Report() {
         <Tile icon="document-text-outline" value={model.entries.length} label="wpisy" />
         <Tile icon="attach" value={model.counts.attachments} label="załączniki" />
         <Tile icon="shield-checkmark-outline" value={model.counts.stamped} label="ze znacznikiem czasu" color={C.ok} />
-      </View>
-      <View style={st.chips}>
-        {model.byForm.map((g) => (
-          <IconChip key={g.form} icon="pricetag-outline" text={`${formLabel(g.form)} ${g.seqs.length}`} />
-        ))}
       </View>
 
       <View style={st.share}>
@@ -155,7 +149,6 @@ const st = themed(() => StyleSheet.create({
   tiles: { flexDirection: 'row', gap: 8, marginBottom: 10 },
   tile: { flex: 1, backgroundColor: C.surface, borderRadius: 12, paddingVertical: 12, alignItems: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: C.border },
   tileValue: { fontSize: 22, fontWeight: '800', marginTop: 4 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 8 },
   share: { flexDirection: 'row', gap: 10, marginTop: 4, marginBottom: 12 },
   shareBtn: { flex: 1, backgroundColor: C.primary, borderRadius: 14, paddingVertical: 18, alignItems: 'center' },
   shareTitle: { color: '#fff', fontSize: 18, fontWeight: '800', marginTop: 6 },

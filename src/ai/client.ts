@@ -1,22 +1,15 @@
 import { AiError } from './errors';
 import { geminiJson } from './gemini';
-import { ASSESS_SCHEMA, ASSESS_SYSTEM, ORGANIZE_SCHEMA, ORGANIZE_SYSTEM } from './prompts';
-import type { AiItemIn } from './validate';
-
-export interface AiRequestEntry {
-  id: string;
-  date: string;
-  approx: boolean;
-  forms: string[];
-  description: string;
-}
+import { ASSESS_SCHEMA, ASSESS_SYSTEM, REWRITE_SCHEMA, REWRITE_SYSTEM } from './prompts';
 
 export { AiError } from './errors';
 
-/** Neutral chronology of the selected entries (names must be pseudonymised first). */
-export async function requestOrganize(entries: AiRequestEntry[]): Promise<{ model: string; items: AiItemIn[]; truncated: boolean }> {
-  const r = await geminiJson<{ items?: AiItemIn[] }>(ORGANIZE_SYSTEM, JSON.stringify({ entries }), ORGANIZE_SCHEMA, 180_000);
-  return { model: r.model, items: r.data.items ?? [], truncated: r.truncated };
+/** The description with spelling and sentences corrected (names must be pseudonymised first). */
+export async function requestRewrite(description: string): Promise<{ model: string; text: string }> {
+  const r = await geminiJson<{ text?: string }>(REWRITE_SYSTEM, description, REWRITE_SCHEMA);
+  const text = (r.data.text ?? '').trim();
+  if (!text) throw new AiError('Niepoprawna odpowiedź modelu.', 'server');
+  return { model: r.model, text };
 }
 
 export interface AssessmentRequest {

@@ -4,7 +4,7 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { FORMS, formLabel } from '@/content/formy';
 import { moneyAmounts } from '@/content/pieniadze';
-import { formatOccurred, formatSeconds } from '@/ui/format';
+import { fileExt, formatOccurred, formatSeconds } from '@/ui/format';
 import { C, H2, Icon, IconBtn, List, P, VaultScreen } from '@/ui/kit';
 import { themed } from '@/ui/theme';
 import { stampNow } from '@/vault/actions';
@@ -181,11 +181,6 @@ function EntryRow({ e, last }: { e: Entry; last: boolean }) {
 
 const MAX_THUMBS = 4;
 
-/** "umowa.pdf" -> "PDF" (or from the type, e.g. application/pdf), shown on a file tile. */
-const fileExt = (a: Attachment) => {
-  const ext = /\.([a-z0-9]{1,5})$/i.exec(a.name)?.[1] ?? a.mime.split('/')[1]?.split(/[.+;-]/)[0] ?? '';
-  return ext.slice(0, 4).toUpperCase();
-};
 
 /** Same-size tile for every attachment: a photo preview, or an icon (with the length of a recording). */
 function Thumb({ a }: { a: Attachment }) {
@@ -214,7 +209,7 @@ function Thumb({ a }: { a: Attachment }) {
       <View style={[st.thumb, st.thumbIcon]}>
         <Icon name={a.kind === 'audio' ? 'mic' : 'document-outline'} size={22} color={C.primary} />
         {a.kind === 'audio' && ms ? <Text style={st.thumbTime}>{formatSeconds(Math.round(ms / 1000))}</Text> : null}
-        {a.kind === 'document' && fileExt(a) ? <Text style={st.thumbTime}>{fileExt(a)}</Text> : null}
+        {a.kind === 'document' && fileExt(a.name, a.mime) ? <Text style={st.thumbTime}>{fileExt(a.name, a.mime)}</Text> : null}
       </View>
     );
   }

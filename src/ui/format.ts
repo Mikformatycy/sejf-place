@@ -48,3 +48,9 @@ export function nowLocal(): string {
   const p = (n: number) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 }
+
+/** "umowa.pdf" -> "PDF" (or from the type, e.g. application/pdf), shown on a file tile. */
+export function fileExt(name: string, mime: string): string {
+  const ext = /\.([a-z0-9]{1,5})$/i.exec(name)?.[1] ?? mime.split('/')[1]?.split(/[.+;-]/)[0] ?? '';
+  return ext.slice(0, 4).toUpperCase();
+}

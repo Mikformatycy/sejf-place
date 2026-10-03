@@ -186,5 +186,5 @@ const st = themed(() => StyleSheet.create({
   rowLabel: { flex: 1, fontSize: 16, color: C.text },
   value: { fontSize: 15, fontWeight: '600', color: C.primary },
   slider: { paddingHorizontal: 8, paddingBottom: 6 },
-  plainRow: { justifyContent: 'center', paddingHorizontal: 14, minHeight: 52 },
+  plainRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, minHeight: 52 },
 }));

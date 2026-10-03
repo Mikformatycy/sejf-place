@@ -82,7 +82,11 @@ describe('severity', () => {
     expect(level(entry({ description: 'Złapał mnie za szyję i dusił.' }))).toBe(3);
     expect(level(entry({ description: 'Powiedział, że mnie zabije.' }))).toBe(3);
     expect(level(entry({ description: 'Wyciągnął nóż' }))).toBe(3);
-    expect(level(entry({ forms: ['psychiczna'] }), { profile: { relation: '', firearm: 'tak' } })).toBe(3);
+    expect(level(entry({ forms: ['fizyczna'] }), { profile: { relation: '', firearm: 'tak' } })).toBe(3);
+  });
+
+  it('does not call insults a danger to life just because there is a gun at home', () => {
+    expect(level(entry({ forms: ['psychiczna'], description: 'Wyzywał mnie od idiotek.' }), { profile: { relation: '', firearm: 'tak' } })).toBe(1);
   });
 
   it('does not raise a false alarm on harmless words', () => {
