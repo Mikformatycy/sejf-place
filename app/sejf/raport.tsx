@@ -5,7 +5,7 @@ import { buildReportModel, type ReportModel } from '@/report/model';
 import { sharePackage, sharePdf } from '@/report/export';
 import { moneyAmounts } from '@/content/pieniadze';
 import { formatOccurred } from '@/ui/format';
-import { Btn, C, Chip, Field, Icon, P, VaultScreen, s, type IconName } from '@/ui/kit';
+import { Btn, C, Field, Icon, P, VaultScreen, type IconName } from '@/ui/kit';
 import { themed } from '@/ui/theme';
 import type { EntryContent, Profile } from '@/vault/types';
 import { useSession } from '@/vault/session';
@@ -144,7 +144,6 @@ function ProfileSheet({
   onDone: (p: Pick<Profile, 'relation' | 'firearm' | 'childrenCount'>) => void;
 }) {
   const [relation, setRelation] = useState(initial.relation);
-  const [firearm, setFirearm] = useState(initial.firearm);
   const [children, setChildren] = useState(initial.childrenCount);
   return (
     <Modal transparent animationType="slide" visible onRequestClose={onClose}>
@@ -153,14 +152,8 @@ function ProfileSheet({
         <ScrollView keyboardShouldPersistTaps="handled">
           <Text style={st.sheetTitle}>Do raportu (opcjonalnie)</Text>
           <Field label="Relacja z osobą stosującą przemoc" value={relation} onChangeText={setRelation} placeholder="np. mąż, były partner" />
-          <Text style={st.sheetLabel}>Czy ta osoba ma broń palną?</Text>
-          <View style={[s.row, { marginBottom: 10 }]}>
-            {(['tak', 'nie', 'nie wiem'] as const).map((v) => (
-              <Chip key={v} label={v} selected={firearm === v} onPress={() => setFirearm(firearm === v ? '' : v)} />
-            ))}
-          </View>
           <Field label="Liczba dzieci w domu" value={children} onChangeText={(v) => setChildren(v.replace(/\D/g, ''))} keyboardType="number-pad" />
-          <Btn label="Generuj" onPress={() => onDone({ relation: relation.trim(), firearm, childrenCount: children })} />
+          <Btn label="Generuj" onPress={() => onDone({ relation: relation.trim(), firearm: '', childrenCount: children })} />
         </ScrollView>
       </View>
     </Modal>

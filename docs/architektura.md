@@ -12,7 +12,7 @@ flowchart LR
     C -. "dane przykrywki (jawne)" .- AS[(AsyncStorage)]
   end
   V -- "tylko SHA-256 wpisu" --> TSA[TSA RFC 3161<br/>FreeTSA / Sectigo]
-  V -- "opcjonalnie, za zgodą:<br/>opisy po pseudonimizacji" --> P[server/ proxy] --> A[Anthropic API<br/>claude-opus-5-5]
+  V -- "tylko po naciśnięciu AI:<br/>opis wpisu po pseudonimizacji" --> G[Google Gemini API<br/>gemini-3.5-flash]
   V -- "Udostępnij: PDF / ZIP" --> Z[Zaufana osoba / organizacja]
   Z --> W[verifier/ lub openssl]
 ```
@@ -44,7 +44,7 @@ flowchart LR
 ## Integralność
 
 - `entryRecord = {v, id, seq, createdAt, prevHash, content}` → kanoniczny JSON (JCS) → SHA-256 (`src/integrity/chain.ts`). Pierwszy wpis ma `prevHash = 0…0`.
-- Wpisy są tylko dopisywane. Korekta to nowy wpis z `correctionOf`, a usunięcie treści to `tombstone` (hash zostaje).
+- Wpisy są tylko dopisywane. „Edytuj” w interfejsie tworzy nowy wpis z `correctionOf`; lista pokazuje tylko najnowszą wersję, a widok wpisu ma historię wszystkich wersji. Usunięcie treści to `tombstone` (hash zostaje).
 - RFC 3161 (`src/integrity/rfc3161.ts`):
   - `TimeStampReq` kodowany ręcznie w DER (sha256, nonce 64-bit, certReq), zgodność sprawdzona przez `openssl ts -query`,
   - odpowiedź parsowana przez `asn1js` z kontrolą imprint i nonce,
@@ -53,20 +53,27 @@ flowchart LR
 
 ## Raport i pakiet
 
-- `buildReportModel()` (`src/report/model.ts`): grupowanie według sekcji IV NK-A i NK-C (pierwszy, powtarzające się, najniebezpieczniejszy, ostatni). Nic nie jest wnioskowane: „pierwszy” i „najniebezpieczniejszy” oznacza użytkowniczka.
+- `buildReportModel()` (`src/report/model.ts`): grupowanie według sekcji IV NK-A i chronologia jak w NK-C (pierwszy, powtarzające się, ostatni). Nic nie jest wnioskowane. Zatwierdzone teksty AI trafiają do raportu obok oryginałów.
 - `renderReportHtml()`: HTML do `expo-print`. Opisy są cytowane dosłownie (z escapowaniem).
 - `buildManifest()` + `buildZip()`: manifest.json, dowody/, tsr/, certs/, WERYFIKACJA.txt. PDF dostaje własny znacznik czasu.
 - `computeMetrics()` (`src/report/metrics.ts`): liczby do pilotażu w polu `metrics` manifestu (wpisy, wpisy z plikami, dni od pierwszego zdarzenia i od pierwszego wpisu do raportu, wcześniejsze eksporty). Wyliczane z wpisów; aplikacja niczego nie śledzi ani nie wysyła. Nie są częścią łańcucha dowodowego.
 - `verifyPackage()` (`src/integrity/verify.ts`) to wspólny kod aplikacji, testów i `verifier/`.
 
-## AI
+## AI (Google Gemini, prosto z telefonu)
 
-- `makePseudonymizer()`: zamiana dokładnie wymienionych form imion na `[osoba A]`.
-- `server/server.ts`:
-  - `client.beta.messages.create` z `claude-opus-5-5`, `output_config.format` (JSON Schema) i `effort: high`,
-  - `fallbacks: "default"` (beta `server-side-fallback-2026-07-01`) dla odmów,
-  - token aplikacji, porównanie w stałym czasie, bez logowania treści.
-- `checkItems()`: odwołania do istniejących wpisów, liczby i miesiące muszą wynikać z wpisów. Wszystko inne jest flagowane do decyzji użytkowniczki.
+- `src/ai/gemini.ts`: jedno wywołanie `generateContent` z `responseJsonSchema`; przy 5xx/429 jedno ponowienie na modelu zapasowym (`gemini-3.5-flash` → `gemini-3.5-flash-lite`, `src/ai/config.ts`). Klucz z `.env.local` (`EXPO_PUBLIC_GEMINI_API_KEY`).
+- `makePseudonymizer()`: zamiana dokładnie wymienionych form imion (Ustawienia → „Ukryj imiona”) na `[osoba A]` przed wysłaniem i z powrotem po odpowiedzi.
+- **Głos rozsądku** (`src/ai/assessEntry.ts`, prompt `ASSESS_*` w `src/ai/prompts.ts`): poziom `brak / niepokojace / powazne / zagrozenie`. `combineAssessment()` (`src/legal/assessment.ts`) łączy go z regułami offline (`src/legal/severity.ts`): model nie może dać niższego poziomu niż twarde sygnały (duszenie, groźba zabicia, broń, przemoc seksualna). Sama przemoc ekonomiczna to poziom „niepokojące”, chyba że towarzyszą jej groźby lub przemoc fizyczna.
+- **Uporządkuj** (`REWRITE_*`): poprawia pisownię i zdania jednego opisu, bez dopisywania faktów. Wynik z liczbą, której nie ma w oryginale (`numbersIn()` z `src/ai/validate.ts`), jest odrzucany. Wersja AI jest zapisywana osobno (`aiSummary`), oryginał się nie zmienia.
+- **Co mówi prawo** (`src/legal/`): reguły offline dopasowujące opis do sprawdzonych przepisów; nic nie jest wysyłane.
+- Katalog `server/` to szkic serwera pośredniego z wcześniejszej wersji (nieużywany w aplikacji). W produkcji klucz AI powinien zostać na takim serwerze, a nie w aplikacji.
+
+## Interfejs
+
+- Paleta `C` (`src/ui/theme.ts`) jest podmieniana w miejscu przy zmianie trybu jasny/ciemny; style tworzone przez `themed()` przeliczają się przy następnym użyciu, a stos ekranów sejfu jest odtwarzany z nowym kluczem.
+- Główne ekrany sejfu to zakładki (`app/sejf/(tabs)/`) ze wspólną dolną belką `BarShell` (`src/ui/BottomBar.tsx`); ta sama belka z kołem „głos rozsądku” jest w widoku wpisu.
+- Animacja po otwarciu sejfu (`src/ui/UnlockIntro.tsx`) używa tylko transformacji i przezroczystości (native driver), pokazuje się wyłącznie po kluczu.
+- Przykrywki (`src/covers/ui/`) mają kolorowe nagłówki `Hero` i delikatne tła `Backdrop` (`src/covers/ui/decor.tsx`); każde sprawdzenie klucza (`check()`) zostało bez zmian.
 
 ## Przykrywki natywnie
 

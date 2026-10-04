@@ -16,7 +16,9 @@ export async function assessEntry(index: VaultIndex, id: string): Promise<Assess
   if (!content) return null;
   const entry = toHintEntry(content);
   const others = index.entries.filter((e) => e.content && e.id !== id);
-  const ctx = { entry, history: others.map((e) => toHintEntry(e.content!)), profile: index.profile };
+  // The app no longer asks about a firearm; an answer left from an older version is ignored.
+  const profile = { ...index.profile, firearm: '' as const };
+  const ctx = { entry, history: others.map((e) => toHintEntry(e.content!)), profile };
   const pseudo = makePseudonymizer(index.profile.namesToHide);
   const r = await requestAssessment({
     entry: {
@@ -27,7 +29,7 @@ export async function assessEntry(index: VaultIndex, id: string): Promise<Assess
       childrenPresent: content.childrenPresent,
     },
     history: others.slice(-10).map((e) => ({ date: e.content!.occurredAt, forms: e.content!.forms.map(formLabel), description: pseudo.hide(e.content!.description).slice(0, 600) })),
-    firearm: index.profile.firearm,
+    firearm: '',
   });
   const restored = { ...r, title: pseudo.restore(r.title), message: pseudo.restore(r.message), explanation: pseudo.restore(r.explanation), markers: r.markers.map(pseudo.restore) };
   return combineAssessment(restored, assessSeverity(ctx));

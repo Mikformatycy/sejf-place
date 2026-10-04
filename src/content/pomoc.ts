@@ -195,7 +195,7 @@ export const ARTICLES: Article[] = [
       '• „Uporządkuj” poprawia pisownię i zdania w Twoim opisie. Nie dopisuje faktów ani dat. Twój oryginalny opis się nie zmienia: wersję AI włączasz przełącznikiem „Mój opis / Wersja AI”.',
       'Co jest wysyłane: data, rodzaje przemocy i opis tego wpisu. Przy ocenie także skróty kilku poprzednich wpisów, żeby model widział, czy coś się powtarza. Zdjęcia i nagrania nie są wysyłane.',
       'Imiona wpisane w Ustawieniach („Imiona do ukrycia przed AI”) są przed wysłaniem zamieniane na [osoba A], [osoba B]. Po powrocie odpowiedzi wracają na swoje miejsce.',
-      'Darmowa wersja Gemini: Google może użyć wysłanego tekstu do ulepszania swoich usług.',
+      'W Polsce (i całym EOG) Google według warunków Gemini API nie używa wysłanych tekstów do ulepszania swoich usług, także w wersji darmowej. Tekst jest jednak przetwarzany na serwerach Google.',
       'Do raportu trafia zarówno Twój opis, jak i wersja AI.',
     ],
     sources: ['ai.google.dev/gemini-api/terms'],

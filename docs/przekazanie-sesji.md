@@ -1,59 +1,45 @@
-# Przekazanie sesji (stan: 3.10.2026)
+# Przekazanie sesji (stan: 4.10.2026)
 
-Dokument dla kolejnej sesji/modelu. Najpierw przeczytaj ten plik, potem `README.md`.
+Dokument dla kolejnej osoby lub sesji. Najpierw ten plik, potem `README.md`.
 
 ## Projekt w skrócie
 
-**Teczka** (na telefonie „Przybornik”): aplikacja Expo / React Native (SDK 57, RN 0.86, expo-router) na HackYeah 2026, kategoria **ImpactHer: Technology for Real Change**. Zakamuflowany, zaszyfrowany sejf na dowody przemocy domowej (także ekonomicznej). Przykrywka = zwykła aplikacja; sejf otwiera czynność-klucz wybrana przez użytkowniczkę. Wpisy: łańcuch SHA-256 + znaczniki czasu RFC 3161 (FreeTSA), raport PDF, pakiet ZIP weryfikowalny bez aplikacji (`verifier/`).
+**sejf-place** (na iPhonie pod ikoną „Pocket”, na Androidzie nazwa przykrywki; dawniej „Teczka”): aplikacja Expo / React Native (SDK 57, expo-router) na HackYeah 2026, **ImpactHer: Technology for Real Change**. Zakamuflowany, zaszyfrowany sejf na dowody przemocy domowej, także ekonomicznej. Przykrywka to zwykła aplikacja; sejf otwiera czynność-klucz wybrana przez użytkowniczkę. Wpisy: łańcuch SHA-256 + znaczniki czasu RFC 3161 (FreeTSA), raport PDF, pakiet ZIP weryfikowalny bez aplikacji (`verifier/`).
 
-- Repo: `C:\Informatyka\SEM7\HACKYEAH\teczka`, GitHub `Mikformatycy/womens-kit`, gałąź `main`.
-- Kopia stanu sprzed pierwszych zmian: `C:\Informatyka\SEM7\HACKYEAH\teczka_old.zip`.
+- Repozytorium: GitHub `Mikformatycy/sejf-space`, gałąź `main`. Pakiet aplikacji nadal `pl.przybornik.app` (zmiana zrobiłaby z tego nową aplikację).
+- Zespół: Jan Bancerewicz, Piotr Uszyński, Maciej Rapicki, Franciszek Fabiński, Karolina Glaza.
 - Dokumentacja: `docs/architektura.md`, `docs/model-zagrozen.md`, `docs/research-prawny.md`, `docs/pitch-i-demo.md`.
 
-## Użytkowniczka: jak pracować
+## Jak pracować z zespołem
 
-- Pisze po polsku, krótko. Odpowiadaj po polsku, zwięźle.
-- **Nie commituj i nie pushuj** (sama to robi). Komendy podawaj w osobnych blokach.
-- **Interfejs: minimum tekstu**, klasycznie, ikony zamiast napisów (✕, +, aparat…), objaśnienia za ikonką ⓘ (`Info` w `src/ui/kit.tsx`). Nie lubi „AI slop”, długich akapitów ani raportów-ścian tekstu.
-- Szybkość ważniejsza niż efekty.
-- AI ma być **prawdziwym modelem LLM** (nie reguły if-else), ale **darmowym** i bez serwera → wybrała Google Gemini.
-- Termin zgłoszenia: 4.10, 23:00. Kwestię daty startu z regulaminu uznała za „ok”, nie wracaj do niej.
+- Po polsku, krótko. Commity i push robi zespół.
+- Interfejs: mało tekstu, ikony zamiast napisów, objaśnienia pod ⓘ (`Info` w `src/ui/kit.tsx`), dłuższe wyjaśnienia w Pomocy (FAQ, `src/content/pomoc.ts`).
+- Szybkość ważniejsza niż efekty; animacje tylko na transformacjach i przezroczystości.
 
 ## Uruchamianie
 
-- **iPhone 13 przez Expo Go** (główny sposób testowania). Terminal w folderze `teczka`:
-  `$env:REACT_NATIVE_PACKAGER_HOSTNAME = "10.250.166.136"; npx expo start --lan --clear`
-  (IP Wi-Fi laptopa; po zmianie sieci sprawdzić `ipconfig`). Zmiany w kodzie wczytują się same; `r` = reload. Po przeładowaniu sejf trzeba otworzyć kluczem od nowa.
-- Wszystkie `npx expo …` uruchamiać **w folderze projektu** (w `C:\Users\karag` npx pobiera uszkodzone Expo).
-- **Android release** (emulator Pixel_8): `cd android && ./gradlew assembleRelease -PreactNativeArchitectures=x86_64` z `JAVA_HOME=C:\Users\karag\.gradle\jdks\eclipse_adoptium-17-amd64-windows.2` (JDK 25 z Android Studio psuje build). `android/local.properties` musi mieć `cmake.dir=.../Sdk/cmake/4.1.2` (inaczej błąd długich ścieżek). Pełny build po `expo prebuild` trwa ~20 min. Ostatni zbudowany APK **nie zawiera** najnowszych zmian JS (ekran prawny, Gemini, suwak, raport-tabela).
-- Emulator ma 2 GB RAM w konfiguracji i się dławi; uruchamiać z `-memory 4096`. Laptop ma 16 GB i przy Gradle + emulatorze brakuje pamięci (zamknąć Gradle: `./gradlew --stop`).
-- Testy/jakość: `npx jest` (87 przechodzi, 2 sieciowe pominięte), `npx tsc --noEmit`, `npx eslint .`.
-- Pułapki: ekrany sejfu mają `FLAG_SECURE` (zrzuty ekranu czarne); w Git Bash `/sdcard` jest przerabiane (`MSYS_NO_PATHCONV=1`); panel terminala w aplikacji Claude nie startuje (zepsuta integracja), więc długie procesy przez Bash w tle.
+- **iPhone przez Expo Go** (główny sposób testowania), w folderze projektu:
+  `$env:REACT_NATIVE_PACKAGER_HOSTNAME = "<IP laptopa>"; npx expo start --lan --clear`
+  Po zmianie `.env.local` albo po instalacji nowej paczki trzeba zrestartować Expo z `--clear`.
+- **Android release** (emulator Pixel_8): `cd android && ./gradlew assembleRelease -PreactNativeArchitectures=x86_64` z `JAVA_HOME` = JDK 17 (`~/.gradle/jdks/eclipse_adoptium-17-amd64-windows.2`). Emulator z danymi testowymi uruchamiać z `-read-only`.
+- Jakość: `npx tsc --noEmit`, `npx expo lint`, `npx jest`.
 
-## AI (Gemini, bez serwera)
+## Najważniejsze miejsca w kodzie
 
-- `src/ai/gemini.ts` – `generateContent` z `responseJsonSchema`, nagłówek `x-goog-api-key`.
-- `src/ai/config.ts` – klucz/model z `.env.local`: `EXPO_PUBLIC_GEMINI_API_KEY`, `EXPO_PUBLIC_GEMINI_MODEL` (domyślnie `gemini-3.8-flash`; przy 503/429 jedno ponowienie na `EXPO_PUBLIC_GEMINI_FALLBACK_MODEL`, domyślnie `gemini-3.5-flash`; `gemini-2.5-flash` niedostępny dla nowych kont). Szablon: `.env.example`. `.env.local` jest w `.gitignore`.
-- `src/ai/prompts.ts` – instrukcje i schematy: ocena powagi (`ASSESS_*`) i porządkowanie opisów (`ORGANIZE_*`).
-- Klucz jest w `.env.local` (w `.gitignore`). Sprawdzone 3.10 z Node: ocena i porządkowanie działają, 3.8-flash bywa przeciążony (503). Test klucza: `npm run gemini:smoke [-- inny-model]`. Po zmianie `.env.local` restart Expo z `--clear`. Na iPhonie jeszcze niesprawdzone.
-- Bezpiecznik: `src/legal/assessment.ts` łączy ocenę modelu z regułami `src/legal/severity.ts`; model nie może dać niższego poziomu niż twarde sygnały (duszenie, groźba zabicia, broń, przemoc seksualna → poziom 3).
-- Darmowy Gemini: Google może używać treści do ulepszania usług – napisane w zgodzie w aplikacji i w README. Stary proxy z Claude został w `server/` (nieużywany).
+- Sejf: `app/sejf/(tabs)/` (zakładki: telefony, wpisy, pomoc, ustawienia + wspólna belka `src/ui/BottomBar.tsx`), `app/sejf/nowy.tsx` (nowy wpis / edycja), `app/sejf/wpis/[id].tsx` (widok wpisu: prawo, głos rozsądku, uporządkuj, historia wersji), `app/sejf/raport.tsx` (eksport).
+- Przykrywki: `src/covers/ui/*Cover.tsx` (+ `decor.tsx`: nagłówki i tła), instrukcje kluczy w `src/covers/catalog.ts`.
+- AI: `src/ai/` (Gemini prosto z telefonu, modele `gemini-3.5-flash` / `-lite`), bezpiecznik ocen `src/legal/assessment.ts` + `severity.ts`.
+- Motyw: `src/ui/theme.ts` (jasny/ciemny, kolory rodzajów przemocy w `src/ui/formColors.ts`), logo: czcionka Lexend, `OutlineText` w `src/ui/kit.tsx`, animacja `src/ui/UnlockIntro.tsx`.
 
-## Co zostało zrobione w tej sesji (najważniejsze)
+## Tryb demo (przywrócić przed prawdziwym użyciem!)
 
-- Wydajność: szybkie base64/UTF-8, scrypt `asyncTick: 100` (odblokowanie ~0,65 s zamiast ~16 s w starym buildzie), zdjęcia z pliku tymczasowego, TSA bez długich timeoutów offline (10 s, wspólne żądanie, stop po pierwszej porażce).
-- Błędy: kolejka zapisów indeksu, klucz z zerami przy zmianie klucza/zapisie, auto-blokada przy pisaniu/nagrywaniu/AI (`markActivity`, `holdOpen`), jawne kopie w cache, walidacja dat, plural, ustawienia zapisywane przy wyjściu.
-- Szkic wpisu szyfrowany (`draft.enc`), przetrwa szybkie wyjście; szybkie zdjęcie/nagranie z ekranu głównego.
-- Przykrywki: **Przepisy, Zadania, Pij wodę, Urodziny, Czytelniczka, Moje kwiatki** (kalkulator/minutnik/latarka usunięte). Ikony gradientowe z `assets/covers/src/*.svg` → `npm run icons`. Klucze-sekwencje mają **stałą długość** (5 kroków, rytm 6).
-- UI: ikony (Ionicons z `@expo/vector-icons`), FAB „+”, chipy, ⓘ-dymki, suwak auto-blokady 1–15 min (`Slider` w kit), mniej tekstu wszędzie.
-- „Ocena i prawo” (`app/sejf/prawo.tsx`): ocena powagi z Gemini (przycisk) + offline podpowiedzi prawne z zamkniętej listy przepisów (`src/legal/rules.ts`, tylko pozycje ✅ z researchu; test pilnuje, że każdy cytowany artykuł jest w `docs/research-prawny.md`).
-- Raport PDF (`src/report/html.ts`): minimalistyczny – jedna tabela (Nr, Data, Rodzaj, Opis bez zmian, Szczegóły, Znacznik czasu). Pola relacja/broń/dzieci pytane w okienku dopiero przy generowaniu PDF/ZIP (nie w ustawieniach). Usunięty „łańcuch” z ekranu raportu.
-- Metryki pilotażu w `manifest.json` pakietu (`src/report/metrics.ts`), przypomnienie o kopii na ekranie głównym.
+- **Blokada zrzutów ekranu wyłączona**: zakomentowane `usePreventScreenCapture` w `src/vault/quickExit.ts` (oznaczone `DEMO`).
+- Klucz Gemini wbudowany w aplikację z `.env.local`; w produkcji potrzebny serwer pośredni.
 
-## Otwarte / do zrobienia
+## Otwarte
 
-1. **Moduł „Pieniądze”** (U6) – zrobiony 3.10: `content.money` (rodzaj + kwota w groszach) w zwykłym wpisie, lista pod formą „Ekonomiczna" w `app/sejf/nowy.tsx` (tylko przez „+”, bez osobnego przycisku), tabela sum w raporcie (`moneySummary`, korekta zastępuje poprawiany wpis), testy `src/__tests__/money.test.ts`. Do sprawdzenia na iPhonie. Otwarte: pole „za jaki miesiąc”, kwota w zapytaniu do AI.
-2. **Licznik 14 dni** po nakazie policji (U3), **„Bezpieczeństwo finansowe”** w Pomocy (U7: PESEL, BIK), **nieodpłatna pomoc prawna** w Pomocy – rekomendowane, nie zaczęte.
-3. Nowe pliki od użytkowniczki w `C:\Users\karag\Downloads\`: `research-prawny.md` (uzupełnienie 3.10, +125 linii) i `scenariusze-i-ulepszenia.md` – zaproponowano skopiowanie do `docs/` (podmiana researchu), czeka na zgodę.
-4. **Materiały do zgłoszenia** (użytkowniczka: „potem się zajmiemy”): PDF maks. 10 slajdów, nazwa zespołu i skład, ujednolicona nazwa projektu (Teczka vs repo womens-kit), tryb demo bez FLAG_SECURE do zrzutów, nagranie demo, liczby o skali problemu (policja.pl), odświeżenie `docs/pitch-i-demo.md` (krok 8 mówi o usuniętym Kalkulatorze) i tabeli „Stan projektu” w README.
-5. Nowy build Androida z najnowszym JS i sprawdzenie na urządzeniu (ekran prawny, suwak, okienko raportu, Gemini).
+1. Materiały do zgłoszenia (termin 4.10, 23:00, HackTribe): PDF maks. 10 slajdów, nazwa zespołu, zrzuty ekranu, ewentualnie APK i weryfikator jako demo link.
+2. Liczby o skali problemu ze źródłem (np. statystyki Policji o procedurze „Niebieskie Karty”) do prezentacji.
+3. Przyciski głośności w przykrywce (ukryte zdjęcie przód/tył i nagranie z autozapisem): realne tylko w zbudowanej aplikacji na Androida, wymaga „skrzynki” szyfrowanej kluczem publicznym, bo przy zamkniętym sejfie nie ma klucza. Na razie jako następny krok w pitchu.
+4. Rekomendowane, nie zaczęte: licznik 14 dni po nakazie policji, „Bezpieczeństwo finansowe” w Pomocy (PESEL, BIK).
+5. Pliki demo weryfikatora nadal nazywają się `teczka-demo*.zip`.

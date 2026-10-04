@@ -1,4 +1,4 @@
-# Research prawny: Teczka
+# Research prawny: sejf-place
 
 **Stan weryfikacji: 3 października 2026 r.** Teksty ustaw pobrano z API Sejmu (teksty ujednolicone Kancelarii Sejmu z datami podanymi przy każdym akcie), prawo UE z EUR-Lex, a dane kontaktowe z oficjalnych stron instytucji.
 
@@ -17,7 +17,7 @@
 ## 0. Najważniejsze wnioski dla projektu
 
 1. ✅ **Przemoc ekonomiczna jest w ustawowej definicji przemocy domowej.** To art. 2 ust. 1 pkt 1 lit. d UPPD, wprowadzony nowelizacją, która weszła w życie 22.06.2023 r. Lit. e obejmuje także przemoc „za pomocą środków komunikacji elektronicznej”.
-2. ✅ **Aplikacja nie wypełnia Niebieskiej Karty.** Formularz NK-A wypełnia przedstawiciel uprawnionej służby w obecności osoby doznającej przemocy (§ 2 ust. 2 i 5 rozporządzenia). Teczka przygotowuje chronologię zgodną z kategoriami formularza NK-A (sekcja IV) i z „historią przemocy” z NK-C. Ma ona pomóc w rozmowie, a nie zastąpić formularz.
+2. ✅ **Aplikacja nie wypełnia Niebieskiej Karty.** Formularz NK-A wypełnia przedstawiciel uprawnionej służby w obecności osoby doznającej przemocy (§ 2 ust. 2 i 5 rozporządzenia). sejf-place przygotowuje chronologię zgodną z kategoriami formularza NK-A (sekcja IV) i z „historią przemocy” z NK-C. Ma ona pomóc w rozmowie, a nie zastąpić formularz.
 3. ✅ **Niekwalifikowany znacznik czasu też może być dowodem** (art. 41 ust. 1 eIDAS). Tylko **kwalifikowany** daje domniemanie dokładności czasu i integralności danych (art. 41 ust. 2). FreeTSA, którego używamy w demo, nie jest kwalifikowany. W produkcji warto użyć kwalifikowanego dostawcy z rejestru NCCert (pkt 7).
 4. ✅ **Znacznik czasu dowodzi czego innego, niż często się zakłada.** Pokazuje, że dane istniały najpóźniej w chwili T i od tej chwili się nie zmieniły. **Nie dowodzi**, kiedy wydarzyło się zdarzenie, ani że zdjęcie przedstawia prawdę. Tak to komunikujemy w aplikacji i w pitchu.
 5. ✅ **W kodeksie karnym nie ma odrębnego przestępstwa „przemocy ekonomicznej”** (stan na 28.08.2026). Takie zachowania mogą mieć znaczenie np. przy art. 207 kk (znęcanie się), art. 209 kk (alimenty) albo art. 191 § 1a kk. Kwalifikację ocenia prokurator i sąd ❓.
@@ -106,7 +106,7 @@ Osoba stosująca przemoc to osoba **pełnoletnia** (pkt 3). Małoletni świadek 
 
 **Wnioski dla aplikacji**
 - W aplikacji i w raporcie piszemy wprost: „to nie jest formularz Niebieskiej Karty”.
-- Raport układa wpisy według kategorii z sekcji IV NK-A i według czterech punktów historii z NK-C. Oznaczenia „pierwszy” i „najniebezpieczniejszy” stawia **wyłącznie użytkowniczka**. AI nigdy ich nie ustala.
+- Raport układa wpisy według kategorii z sekcji IV NK-A i chronologicznie (pierwsze, powtarzające się, ostatnie zdarzenie, jak w „historii przemocy” z NK-C). Oznaczenie „najniebezpieczniejszy” usunęliśmy, żeby uprościć formularz. AI nie ustala żadnych oznaczeń w raporcie.
 
 **Projekt nowelizacji UD246** ✅ (fakt istnienia), ❓ (ostateczny kształt)
 - Skierowany do konsultacji 24.07.2026 r. (gov.pl, Pełnomocniczka Rządu ds. Równości).
@@ -171,7 +171,7 @@ Osoba stosująca przemoc to osoba **pełnoletnia** (pkt 3). Małoletni świadek 
 **Postępowanie cywilne** ✅ (Kodeks postępowania cywilnego, tekst ujednolicony z 18.08.2026, t.j. Dz.U. 2026 poz. 468)
 - **Art. 233 § 1:** sąd ocenia wiarogodność i moc dowodów według własnego przekonania.
 - **Art. 243¹:** przepisy o dokumentach stosuje się do „dokumentów zawierających tekst, umożliwiających ustalenie ich wystawców”.
-- **Art. 308:** dowody z innych dokumentów, „w szczególności zawierających zapis obrazu, dźwięku albo obrazu i dźwięku”, sąd przeprowadza, stosując odpowiednio przepisy o oględzinach i o dokumentach. Nagrania i zdjęcia z Teczki trafiają tu.
+- **Art. 308:** dowody z innych dokumentów, „w szczególności zawierających zapis obrazu, dźwięku albo obrazu i dźwięku”, sąd przeprowadza, stosując odpowiednio przepisy o oględzinach i o dokumentach. Nagrania i zdjęcia z sejf-place trafiają tu.
 
 **Nagrywanie rozmów** 🟡 / ❓
 - 🟡 **SN, postanowienie z 26.06.2025 r., I CSK 2855/24** (według omówień kancelarii; adres PDF na sn.pl zwracał 404 w dniu weryfikacji): nagrania „dokonane bez zgody i wiedzy rozmówcy po zweryfikowaniu ich autentyczności mogą być dowodem” w postępowaniu cywilnym. Ocena ma być wyważona. Okoliczności nagrania wskazujące na poważne naruszenie zasad współżycia społecznego mogą zdyskwalifikować dowód.
@@ -227,20 +227,21 @@ Osoba stosująca przemoc to osoba **pełnoletnia** (pkt 3). Małoletni świadek 
 - **Art. 10:** dane dotyczące wyroków skazujących i naruszeń prawa wolno przetwarzać tylko pod nadzorem władz publicznych albo gdy pozwala na to prawo Unii lub państwa członkowskiego.
 
 **Jak zaprojektowano aplikację** (fakty techniczne)
-- Treść Teczki zostaje na telefonie, zaszyfrowana kluczem, którego nie znamy. Twórcy aplikacji nie mają do niej dostępu.
+- Treść sejfu zostaje na telefonie, zaszyfrowana kluczem, którego nie znamy. Twórcy aplikacji nie mają do niej dostępu.
 - Bez zgody użytkowniczki z telefonu wychodzą tylko **hashe SHA-256** wpisów (do TSA). Hash nie ujawnia treści.
-- Opcjonalne AI wysyła wybrane opisy, po zamianie znanych imion na role, do serwera-proxy, a stamtąd do API Anthropic. Wymaga zgody przy każdym użyciu.
+- Opcjonalne AI wysyła opis jednego wpisu (przy ocenie także skróty kilku poprzednich), po zamianie znanych imion na role, prosto z telefonu do Google Gemini API. Dzieje się to tylko po naciśnięciu przycisku AI.
 
-**Anthropic API** ✅ (Privacy Center, stan 3.10.2026)
-- „we automatically delete inputs and outputs on our backend within 30 days of receipt or generation”. Wyjątki: umowa (np. zero data retention), egzekwowanie Usage Policy (do 2 lat przy oflagowaniu), obowiązek prawny.
-- „By default, we will not use your inputs or outputs from our commercial products (e.g. … Anthropic API …) to train our models.”
+**Google Gemini API** ✅ (Gemini API Additional Terms of Service, „Last updated 2026-04-28”)
+- Usługi bezpłatne: „Google uses the content you submit to the Services and any generated responses to provide, improve, and develop Google products and services…”.
+- Usługi płatne: „Google doesn't use your prompts … or responses to improve our products, and will process your prompts and responses in accordance with the Data Processing Addendum…”.
+- **EOG, Szwajcaria, UK:** „the terms under 'How Google uses Your Data' in 'Paid Services' apply to all Services, including Google AI Studio and unpaid quota in the Gemini API, even though they are offered free of charge.” Dla użytkowniczek w Polsce treści nie służą więc do ulepszania usług Google, także w planie darmowym.
 
 ❓ **Do konsultacji z IOD lub prawnikiem przed pilotażem:**
 - Czy samo przechowywanie w Teczce mieści się w wyjątku z art. 2 ust. 2 lit. c (dane osoby stosującej przemoc i świadków). Wysłanie raportu organizacji lub organom może już wykraczać poza „czysto osobisty” charakter.
-- Kto jest administratorem danych przy funkcji AI: operator serwera-proxy (zespół, organizacja partnerska)? Potrzebne są: podstawa z art. 9 ust. 2 (wyraźna zgoda), umowa powierzenia z Anthropic, ocena transferu poza EOG i najpewniej DPIA (art. 35).
+- Kto jest administratorem danych przy funkcji AI (zespół, organizacja partnerska)? Potrzebne są: podstawa z art. 9 ust. 2 (wyraźna zgoda), umowa powierzenia z Google (Data Processing Addendum), ocena transferu poza EOG i najpewniej DPIA (art. 35). W prototypie klucz API jest wbudowany w aplikację; w produkcji zapytania muszą iść przez serwer pośredni.
 - Czy hash wpisu wysyłany do TSA to dane osobowe. Zakładamy, że ryzyko jest minimalne, ale tego nie wiem.
 
-## 9. Sklepy z aplikacjami ✅ (polityki) / ❓ (czy Teczka przejdzie weryfikację)
+## 9. Sklepy z aplikacjami ✅ (polityki) / ❓ (czy sejf-place przejdzie weryfikację)
 
 - **Apple App Review Guidelines 2.3.1(a)** (ostatnia aktualizacja 8.06.2026): „Don't include any hidden, dormant, or undocumented features in your app; your app's functionality should be clear to end users and App Review. All new features, functionality, and product changes must be described with specificity in the Notes for Review section of App Store Connect…”
 - **Google Play, Deceptive Behavior / Behavior Transparency:**
@@ -249,9 +250,9 @@ Osoba stosująca przemoc to osoba **pełnoletnia** (pkt 3). Małoletni świadek 
 
 **Wnioski**
 - Na hackathon i pilotaż wystarczy dystrybucja poza sklepami: build deweloperski, a na Androidzie APK przekazany przez organizację partnerską.
-- ❓ Przy publikacji w sklepach trzeba **jawnie** opisać funkcję sejfu i przykrywek w opisie aplikacji i w notatkach dla recenzentów. Przełączanie ikony i nazwy na „Kalkulator” itp. może zostać uznane za sprzeczne z zasadą zgodności tytułu i ikony z funkcją. Nie wiem, jak zdecydują recenzenci. Trzeba o to zapytać przed publikacją.
+- ❓ Przy publikacji w sklepach trzeba **jawnie** opisać funkcję sejfu i przykrywek w opisie aplikacji i w notatkach dla recenzentów. Przełączanie ikony i nazwy na „Przepisy”, „Moje kwiatki” itp. może zostać uznane za sprzeczne z zasadą zgodności tytułu i ikony z funkcją. Nie wiem, jak zdecydują recenzenci. Trzeba o to zapytać przed publikacją.
 - Jawny opis w sklepie to też ślad, który może zobaczyć sprawca, np. w historii zakupów. To kompromis do omówienia z organizacjami pomocowymi.
-- Nazwy przykrywek są generyczne („Kalkulator”, „Latarka”) i nie podszywają się pod konkretną markę ani aplikację.
+- Nazwy przykrywek są generyczne („Przepisy”, „Zadania”, „Pij wodę”, „Urodziny”, „Czytelniczka”, „Moje kwiatki”) i nie podszywają się pod konkretną markę ani aplikację.
 
 ## 10. Katalog pomocy (to, co trafia do aplikacji)
 
@@ -270,7 +271,7 @@ Uwagi:
 
 ## 11. Otwarte pytania (do prawniczki lub prawnika i organizacji pomocowej)
 
-1. Czy chronologia z Teczki (PDF i pakiet ZIP) jest przydatna dla zespołów interdyscyplinarnych i grup diagnostyczno-pomocowych? W jakiej formie najlepiej ją przekazywać?
+1. Czy chronologia z sejf-place (PDF i pakiet ZIP) jest przydatna dla zespołów interdyscyplinarnych i grup diagnostyczno-pomocowych? W jakiej formie najlepiej ją przekazywać?
 2. Czy w sprawach z art. 207 kk prokuratura akceptuje pakiet z niekwalifikowanym znacznikiem czasu, czy potrzebny jest kwalifikowany? Jakie są koszty?
 3. Granica art. 267 § 3 kk przy nagraniach w domu, np. nagranie kłótni, w której uczestniczą dzieci.
 4. Status RODO przechowywania danych sprawcy i świadków w Teczce oraz wysyłki raportu organizacji.
@@ -298,8 +299,7 @@ Uwagi:
 - SN I CSK 2855/24 (omówienie): https://pz.legal/czy-nagranie-dokonane-bez-zgody-i-wiedzy-rozmowcy-moze-stanowic-dowod-w-postepowaniu-cywilnym/
 - Apple App Review Guidelines: https://developer.apple.com/app-store/review/guidelines/
 - Google Play, Deceptive Behavior: https://support.google.com/googleplay/android-developer/answer/9888077
-- Anthropic, retencja danych: https://privacy.claude.com/en/articles/7996866-how-long-do-you-store-my-organization-s-data
-- Anthropic, trenowanie modeli: https://privacy.claude.com/en/articles/7996868-is-my-data-used-for-model-training
+- Gemini API, warunki i wykorzystanie danych: https://ai.google.dev/gemini-api/terms
 - Niebieska Linia: https://niebieskalinia.info/
 - Linia Pomocy Pokrzywdzonym: https://www.gov.pl/web/sprawiedliwosc/linia-pomocy-pokrzywdzonym
 - 116 123: https://policja.pl/pol/telefony-zaufania/2852,Potrzebujesz-wsparcia-Wazne-telefony.html

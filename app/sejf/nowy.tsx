@@ -6,7 +6,7 @@ import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-nativ
 import { FORMS } from '@/content/formy';
 import { amountField, moneyAmounts, parseAmount, takesAmount } from '@/content/pieniadze';
 import { formatBytes, nowLocal } from '@/ui/format';
-import { Btn, C, CheckRow, Chip, Field, H2, Icon, IconBtn, List, Notice, VaultScreen, s, type IconName } from '@/ui/kit';
+import { Btn, C, CheckRow, Field, H2, Icon, IconBtn, List, Notice, VaultScreen, s, type IconName } from '@/ui/kit';
 import { formColor } from '@/ui/formColors';
 import { themed } from '@/ui/theme';
 import { saveEntry } from '@/vault/actions';
@@ -153,19 +153,6 @@ export default function NewEntry() {
     }
   };
 
-  const discard = () =>
-    Alert.alert('Odrzucić wpis?', 'Tekst i dodane załączniki zostaną usunięte.', [
-      { text: 'Anuluj', style: 'cancel' },
-      {
-        text: 'Odrzuć',
-        style: 'destructive',
-        onPress: () => {
-          useDraft.getState().reset(true);
-          router.back();
-        },
-      },
-    ]);
-
   const addFrom = async (pick: () => Promise<Attachment | null>, fromGallery: boolean) => {
     try {
       const a = await pick();
@@ -180,12 +167,7 @@ export default function NewEntry() {
   return (
     <VaultScreen
       title={original ? 'Edycja' : 'Nowy wpis'}
-      footer={
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <IconBtn icon="trash-outline" label="Odrzuć wpis" onPress={discard} disabled={saving} color={C.muted} size={48} />
-          <Btn label="Zapisz" onPress={save} busy={saving} style={{ flex: 1 }} />
-        </View>
-      }
+      footer={<Btn label="Zapisz" onPress={save} busy={saving} />}
     >
 
       <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -285,8 +267,6 @@ export default function NewEntry() {
         })}
       </List>
 
-      <Text style={st.subLabel}>Czy były przy tym dzieci?</Text>
-      <TriChoice value={f.childrenPresent} onChange={(v) => set('childrenPresent', v)} />
     </VaultScreen>
   );
 }
@@ -304,19 +284,8 @@ function PickField({ label, icon, value, onPress, flex }: { label: string; icon:
   );
 }
 
-function TriChoice({ value, onChange }: { value: boolean | null; onChange: (v: boolean | null) => void }) {
-  return (
-    <View style={[s.row, { marginBottom: 6 }]}>
-      <Chip label="Tak" selected={value === true} onPress={() => onChange(value === true ? null : true)} />
-      <Chip label="Nie" selected={value === false} onPress={() => onChange(value === false ? null : false)} />
-      <Chip label="Nie wiem" selected={value === null} onPress={() => onChange(null)} />
-    </View>
-  );
-}
-
 const st = themed(() => StyleSheet.create({
   pick: { flexDirection: 'row', alignItems: 'center' },
-  subLabel: { fontSize: 14, fontWeight: '600', color: C.text, marginBottom: 6, marginTop: 6 },
   attachRow: { flexDirection: 'row', gap: 14, marginBottom: 10 },
   attachment: { flexDirection: 'row', alignItems: 'center', paddingLeft: 14, paddingRight: 6, paddingVertical: 6 },
   divider: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.border },

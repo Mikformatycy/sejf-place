@@ -15,7 +15,8 @@ export function LegalHints({ entryId }: { entryId: string }) {
     const content = index?.entries.find((e) => e.id === entryId)?.content;
     if (!index || !content) return [];
     const history = index.entries.filter((e) => e.content && e.id !== entryId).map((e) => toHintEntry(e.content!));
-    return legalHints({ entry: toHintEntry(content), history, profile: index.profile });
+    // No firearm question any more: an old answer must not show up in the hints.
+    return legalHints({ entry: toHintEntry(content), history, profile: { ...index.profile, firearm: '' as const } });
   }, [index, entryId]);
 
   return (
