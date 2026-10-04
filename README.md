@@ -78,3 +78,9 @@ Zgodnie z zasadami HackYeah ujawniamy zewnętrzne modele, API, biblioteki i narz
 - Ikony: Ionicons przez `@expo/vector-icons` (MIT). Ikony przykrywek: własne SVG renderowane skryptem `scripts/generate-icons.mjs` (`sharp`, Apache-2.0).
 - Czcionka logo: **Lexend** (SIL Open Font License 1.1) przez `@expo-google-fonts/lexend`.
 - Treści prawne i telefony pomocowe: akty prawne i oficjalne strony, lista źródeł w [docs/research-prawny.md](docs/research-prawny.md).
+
+**Film demo i prezentacja**
+- Montaż i animacje: **Remotion** (kod w osobnym projekcie), przy pomocy Claude Code.
+- Muzyka, efekty dźwiękowe i ujęcia filmowe: **Mixkit** (Mixkit Free License).
+- Lektor: **ElevenLabs** (synteza mowy, model `eleven_multilingual_v2`).
+- Statystyki: Eurostat / FRA / EIGE, *EU gender-based violence survey* (2024); UN Women i UNODC, *Femicides in 2023* (2024).
