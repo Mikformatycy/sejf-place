@@ -45,14 +45,6 @@ npx expo start --lan --clear
 - Weryfikator pakietów: `npm run verifier`, potem http://localhost:8123 (przykładowe pakiety w `verifier/demo/`).
 - Testy: `npm test` (jednostkowe, m.in. kryptografia, łańcuch, RFC 3161, raport, reguły prawne).
 
-## Ograniczenia (uczciwie)
-
-- To prototyp. Na demo **wyłączona jest blokada zrzutów ekranu** w sejfie (`src/vault/quickExit.ts`, oznaczone `DEMO`); przed prawdziwym użyciem trzeba ją przywrócić.
-- Klucz Gemini jest wbudowany w aplikację; w produkcji AI musi iść przez serwer pośredni.
-- Darmowy serwer znaczników czasu (FreeTSA) nie jest kwalifikowany; w produkcji: dostawca kwalifikowany (eIDAS).
-- Żadna aplikacja nie ochroni przed oprogramowaniem szpiegującym na telefonie (stalkerware).
-- Podpowiedzi prawne i ocena AI nie są poradą prawną.
-
 ## Zespół
 
 - Jan Bancerewicz
