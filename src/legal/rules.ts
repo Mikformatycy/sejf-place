@@ -283,7 +283,7 @@ export const BLUE_CARD = {
   title: 'Procedura „Niebieskie Karty”',
   law: 'art. 9d ' + UPPD,
   summary:
-    'Formularz wypełnia np. policjant, pracownik socjalny albo lekarz, w Twojej obecności. Raport z Teczki pomoże w tej rozmowie.',
+    'Formularz wypełnia np. policjant, pracownik socjalny albo lekarz, w Twojej obecności. Raport z sejf-place pomoże w tej rozmowie.',
   helpSlug: 'niebieska-karta',
   reasons: ['Ogólna droga pomocy, gdy dzieje się przemoc domowa'],
 };

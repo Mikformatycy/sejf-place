@@ -23,7 +23,7 @@ export default function RecordNewKey() {
       await useSession.getState().setCover(cover);
       Alert.alert(
         'Zapisano nowy klucz',
-        `Od teraz Teczkę otwiera tylko nowa czynność w przykrywce „${coverInfo(cover).label}”. Poprzedni klucz już nie działa.`,
+        `Od teraz sejf otwiera tylko nowa czynność w przykrywce „${coverInfo(cover).label}”. Poprzedni klucz już nie działa.`,
       );
       router.dismissTo('/sejf/ustawienia');
     },

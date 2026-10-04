@@ -3,7 +3,7 @@
  *
  * Builds a demo evidence package with real FreeTSA timestamps (for the pitch and for
  * testing verifier/). Skipped unless DEMO_OUT is set:
- *   DEMO_OUT=verifier/demo/teczka-demo.zip npx jest demoPackage.live
+ *   DEMO_OUT=verifier/demo/sejf-place-demo.zip npx jest demoPackage.live
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';

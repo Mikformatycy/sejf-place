@@ -1,4 +1,4 @@
-// Browser verifier for Teczka evidence packages. Everything runs locally in the browser;
+// Browser verifier for sejf-place evidence packages. Everything runs locally in the browser;
 // the ZIP never leaves the computer.
 import { unzipSync } from 'fflate';
 

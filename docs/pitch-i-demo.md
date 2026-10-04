@@ -29,7 +29,7 @@ sejf-place wygląda jak zwykła aplikacja (przepisy, zadania, pij wodę, urodzin
    - **Prawo** → pasujące przepisy, rozwijane pod znacznikiem czasu,
    - **Uporządkuj** → poprawiona pisownia; przełącznik „Mój opis / Wersja AI”, oryginał się nie zmienia.
 6. **Eksport** (ikonka przy „WPISY”) → podgląd raportu → **Udostępnij raport PDF** albo **Paczka dowodów (ZIP)**. Przeciągamy ZIP na stronę `verifier/`: wszystko zielone, podpis TSA potwierdzony kryptograficznie.
-7. Przeciągamy **`teczka-demo-zmieniony.zip`**, w którym zmieniono jedno słowo („krzyczał” → „mówił”). Weryfikator od razu wskazuje zmieniony wpis: ✗.
+7. Przeciągamy **`sejf-place-demo-zmieniony.zip`**, w którym zmieniono jedno słowo („krzyczał” → „mówił”). Weryfikator od razu wskazuje zmieniony wpis: ✗.
 8. **✕** (albo potrząśnięcie telefonem): ekran znów pokazuje **przepis na sernik**.
 9. (Opcjonalnie) **Ustawienia → Przykrywka**: wybór ikonką, np. „Moje kwiatki”, i nowy klucz z listy. Po wyjściu ikona i nazwa w launcherze Androida się zmieniają. Tryb ciemny w sejfie.
 

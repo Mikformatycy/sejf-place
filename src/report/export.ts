@@ -77,6 +77,6 @@ export async function sharePackage(ai?: AiSummary): Promise<{ files: number }> {
   }
   const manifest = buildManifest(index.entries, pdf.id, new Date().toISOString(), { sha256: pdf.sha256, tsa: pdf.tsa }, metrics);
   const zip = buildZip(manifest, pdf.bytes, evidence, index.entries, pdf.tsa?.tokenB64);
-  await shareBytes(`teczka-${pdf.id}.zip`, zip, 'application/zip');
+  await shareBytes(`sejf-place-${pdf.id}.zip`, zip, 'application/zip');
   return { files: evidence.length };
 }

@@ -14,7 +14,7 @@ export default function RecordKey() {
   const onDone = useCallback(
     async (canonical: string) => {
       if (!mayCreateVault()) {
-        Alert.alert('Nie można utworzyć', 'Teczka już istnieje na tym telefonie.');
+        Alert.alert('Nie można utworzyć', 'Sejf już istnieje na tym telefonie.');
         router.replace('/');
         return;
       }

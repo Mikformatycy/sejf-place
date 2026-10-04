@@ -1,5 +1,5 @@
 /**
- * Teczka AI proxy. Keeps the API key off the phone. Two endpoints:
+ * sejf-place AI proxy. Keeps the API key off the phone. Two endpoints:
  * - POST /v1/porzadkuj: rewrites the user's own entries into a neutral chronology WITHOUT adding facts,
  * - POST /v1/ocena: assesses how serious one entry is, so the user can see it is not normal.
 
@@ -251,4 +251,4 @@ const server = createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, () => console.log(`Teczka AI proxy on :${PORT}, model ${MODEL}`));
+server.listen(PORT, () => console.log(`sejf-place AI proxy on :${PORT}, model ${MODEL}`));

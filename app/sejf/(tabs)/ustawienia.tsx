@@ -24,7 +24,7 @@ const ICON_NOTE = !coverSwitcherAvailable
   ? 'W Expo Go ikona się nie zmienia.'
   : Platform.OS === 'ios'
     ? 'iPhone pokaże komunikat o zmianie ikony.'
-    : 'Ikona i nazwa zmienią się po wyjściu z Teczki.';
+    : 'Ikona i nazwa zmienią się po wyjściu z sejfu.';
 
 function SettingsForm({ index }: { index: VaultIndex }) {
   const coverId = useSession((st) => st.coverId);
@@ -178,7 +178,7 @@ function SettingsForm({ index }: { index: VaultIndex }) {
       </List>
 
       <H2>Dane</H2>
-      <Btn kind="danger" label="Usuń wszystkie dane Teczki" onPress={wipe} />
+      <Btn kind="danger" label="Usuń wszystkie dane sejfu" onPress={wipe} />
     </VaultScreen>
   );
 }

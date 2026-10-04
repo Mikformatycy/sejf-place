@@ -18,7 +18,7 @@ function load(name: string): Map<string, Uint8Array> {
 
 describe('demo packages', () => {
   it('the original package verifies', async () => {
-    const v = await verifyPackage(load('teczka-demo.zip'));
+    const v = await verifyPackage(load('sejf-place-demo.zip'));
     expect(v.manifestError).toBeUndefined();
     expect(v.entries.length).toBeGreaterThan(0);
     expect(v.ok).toBe(true);
@@ -26,7 +26,7 @@ describe('demo packages', () => {
   });
 
   it('the package with one changed word fails', async () => {
-    const v = await verifyPackage(load('teczka-demo-zmieniony.zip'));
+    const v = await verifyPackage(load('sejf-place-demo-zmieniony.zip'));
     expect(v.ok).toBe(false);
   });
 });

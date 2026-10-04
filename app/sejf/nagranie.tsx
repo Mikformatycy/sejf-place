@@ -105,7 +105,7 @@ export default function RecordAudio() {
         )}
       </View>
       <View style={{ alignItems: 'center', marginTop: 16 }}>
-        <Info text="Nagranie trafia tylko do Teczki, zaszyfrowane. Nagrywaj rozmowy, w których sama uczestniczysz (Pomoc → Nagrania jako dowód). Wyjście z aplikacji przerywa nagrywanie." />
+        <Info text="Nagranie trafia tylko do sejfu, zaszyfrowane. Nagrywaj rozmowy, w których sama uczestniczysz (Pomoc → Nagrania jako dowód). Wyjście z aplikacji przerywa nagrywanie." />
       </View>
     </VaultScreen>
   );

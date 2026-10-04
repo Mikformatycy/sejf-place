@@ -97,7 +97,7 @@ export function renderReportHtml(m: ReportModel, reportId: string): string {
   </table>
   <p class="small">Integralność: ${m.chain.ok ? 'wpisy niezmienione od zapisu' : '<b>WYKRYTO ZMIANĘ WPISÓW</b>'}, znaczniki czasu: ${m.counts.stamped} z ${total}.${
     problems.length ? ` ${problems.map((c) => `Nr ${c.seq}: ${STATUS_LABEL[c.status]}.`).join(' ')}` : ''
-  } Weryfikacja: pakiet ZIP z Teczki.</p>
+  } Weryfikacja: pakiet ZIP z sejf-place.</p>
   <p class="muted small">Pomoc: ${CONTACTS.slice(0, 4).map((c) => `${esc(c.short)} ${esc(c.phone)}`).join(' · ')}</p>
 </body></html>`;
 }

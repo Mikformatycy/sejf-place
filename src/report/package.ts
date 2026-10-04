@@ -87,7 +87,7 @@ export function buildManifest(
 export function verificationReadme(m: PackageManifest): string {
   const example = m.entries.find((e) => e.tsa);
   return [
-    'WERYFIKACJA PAKIETU DOWODÓW (Teczka)',
+    'WERYFIKACJA PAKIETU DOWODÓW (sejf-place)',
     `Identyfikator raportu: ${m.reportId}`,
     `Wygenerowano: ${m.generatedAt}`,
     '',

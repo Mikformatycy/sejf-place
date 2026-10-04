@@ -23,7 +23,7 @@ export default function CameraScreen() {
   if (!permission.granted) {
     return (
       <VaultScreen title="Zdjęcie">
-        <P>Zdjęcia z tego aparatu trafiają tylko do Teczki, nie do galerii.</P>
+        <P>Zdjęcia z tego aparatu trafiają tylko do sejfu, nie do galerii.</P>
         <Btn label="Zezwól na aparat" onPress={() => void withExternalActivity(requestPermission)} />
       </VaultScreen>
     );
