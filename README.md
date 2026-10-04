@@ -84,3 +84,5 @@ Zgodnie z zasadami HackYeah ujawniamy zewnętrzne modele, API, biblioteki i narz
 - Muzyka, efekty dźwiękowe i ujęcia filmowe: **Mixkit** (Mixkit Free License).
 - Lektor: **ElevenLabs** (synteza mowy, model `eleven_multilingual_v2`).
 - Statystyki: Eurostat / FRA / EIGE, *EU gender-based violence survey* (2024); UN Women i UNODC, *Femicides in 2023* (2024).
+
+Cały kod powstał podczas HackYeah 2026 (3–4.10); poza bibliotekami open source nie korzystaliśmy z wcześniejszych materiałów.
